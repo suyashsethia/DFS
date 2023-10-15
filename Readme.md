@@ -6,7 +6,7 @@
     - Aditya Raghuvanshi
 
 
-### Fucntionality
+### Functionality
 
 1. Create
 - File and Folder 
@@ -17,6 +17,7 @@ Client Side (Aditya)
 
 
 NM Side (Ayan )
+
 ![Alt text](image.png)
 - Recieve Create Request from Client
 - For create file, send CREATE request to SS 
