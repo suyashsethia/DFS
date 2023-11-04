@@ -8,6 +8,8 @@
 #define CREATE_REQUEST '0'
 #define CREATE_BACKUP_REQUEST '1'
 
+#include <stdbool.h>
+
 typedef struct CreateRequestData
 {
     bool is_folder;
@@ -34,6 +36,6 @@ typedef struct Request
 
 int send_create_request(int socket, const char *file_path, bool is_folder);
 int send_create_backup_request(int socket, const char *file_path, bool is_folder);
-int receive_request(Request *request_buffer);
+int receive_request(int socket, Request *request_buffer);
 
 #endif // REQUESTS_H

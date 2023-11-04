@@ -35,7 +35,7 @@ int send_create_backup_request(int socket, const char *file_path, bool is_folder
     return send_request(socket, &request);
 }
 
-int receive_request(Request *request_buffer)
+int receive_request(int socket, Request *request_buffer)
 {
     Message message = {.payload = request_buffer};
     return receive_message(socket, &message);

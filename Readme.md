@@ -13,9 +13,11 @@
 - File and Folder
 
 Client Side (Aditya)
-
-- Send Create Request with file / Folder Path
-- recieve response from NM
+- Create a connection with the NM
+- Prompt the user for an action
+  - CREATE <file_path>
+    - Send Create Request with file / Folder Path
+    - recieve response from NM
 
 NM Side (Ayan )
 
