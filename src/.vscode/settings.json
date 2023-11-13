@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "network_utils.h": "c",
+        "string.h": "c",
+        "requests.h": "c",
+        "responses.h": "c"
+    }
+}
