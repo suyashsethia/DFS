@@ -6,7 +6,7 @@ all: nm.out
 clean:
 	rm -r *.o *.out
 
-nm.out: NM/main.o NM/client_handler.o NM/ss_handler.o Common/requests.o Common/responses.o Common/network_utils.o Common/loggers.o NM/request_handlers/create_request_handler.o
+nm.out: NM/main.o NM/client_handler.o NM/ss_handler.o Common/requests.o Common/responses.o Common/network_utils.o Common/loggers.o NM/request_handlers/create_request_handler.o NM/ss_info.o NM/trie.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 NM/main.o: NM/main.c NM/client_handler.h NM/ss_handler.h
@@ -15,13 +15,19 @@ NM/main.o: NM/main.c NM/client_handler.h NM/ss_handler.h
 NM/client_handler.o: NM/client_handler.c NM/client_handler.h Common/requests.h Common/responses.h Common/loggers.h Common/network_config.h NM/request_handlers/create_request_handler.h
 	$(CC) $(CFLAGS) -c NM/client_handler.c -o $@
 
-NM/ss_handler.o: NM/ss_handler.c NM/ss_handler.h Common/requests.h Common/responses.h
+NM/ss_handler.o: NM/ss_handler.c NM/ss_handler.h Common/requests.h Common/responses.h NM/ss_info.h Common/loggers.h Common/network_config.h
 	$(CC) $(CFLAGS) -c NM/ss_handler.c -o $@
 
-NM/request_handlers/create_request_handler.o: NM/request_handlers/create_request_handler.h NM/request_handlers/create_request_handler.c Common/responses.h
+NM/request_handlers/create_request_handler.o: NM/request_handlers/create_request_handler.h NM/request_handlers/create_request_handler.c Common/responses.h Common/loggers.h
 	$(CC) $(CFLAGS) -c NM/request_handlers/create_request_handler.c -o $@
 
-Common/requests.o: Common/requests.c Common/requests.h Common/network_utils.h 
+NM/ss_info.o: NM/ss_info.c NM/ss_info.h NM/trie.h
+	$(CC) $(CFLAGS) -c NM/ss_info.c -o $@
+
+NM/trie.o: NM/trie.c NM/trie.h
+	$(CC) $(CFLAGS) -c NM/trie.c -o $@
+
+Common/requests.o: Common/requests.c Common/requests.h Common/network_utils.h
 	$(CC) $(CFLAGS) -c Common/requests.c -o $@
 
 Common/responses.o: Common/responses.c Common/responses.h Common/network_utils.h
