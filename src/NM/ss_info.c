@@ -1,4 +1,7 @@
 #include <pthread.h>
+#include <stdlib.h>
+#include <time.h>
+
 #include "ss_info.h"
 #include "trie.h"
 
@@ -6,7 +9,7 @@
 #define MAX_SS_COUNT 1024
 
 pthread_rwlock_t is_registered_lock = PTHREAD_RWLOCK_INITIALIZER;
-bool is_registered[MAX_SS_COUNT];
+bool is_registered[MAX_SS_COUNT] = {false};
 
 pthread_rwlock_t nm_connection_addresses_lock = PTHREAD_RWLOCK_INITIALIZER;
 struct sockaddr_in nm_connection_addresses[MAX_SS_COUNT];
@@ -66,4 +69,28 @@ int get_ss_id_of_path(char *path)
     int ss_id = search_trie(&path_ss_info, path);
     pthread_rwlock_unlock(&path_ss_info_lock);
     return ss_id;
+}
+
+
+int get_random_registered_ss_id()
+{
+    int registered_ssids[MAX_SS_COUNT];
+    int registered_count = 0;
+    pthread_rwlock_rdlock(&is_registered_lock);
+    for (int i = 0; i < MAX_SS_COUNT; i++)
+        if (is_registered[i])
+            registered_ssids[registered_count++] = i;
+    pthread_rwlock_unlock(&is_registered_lock);
+    srand(time(NULL));
+    int random_index = rand() % registered_count;
+    return registered_ssids[random_index];
+}
+
+
+struct sockaddr_in get_nm_connection_address(int ss_id)
+{
+    pthread_rwlock_rdlock(&nm_connection_addresses_lock);
+    struct sockaddr_in address = nm_connection_addresses[ss_id];
+    pthread_rwlock_unlock(&nm_connection_addresses_lock);
+    return address;
 }

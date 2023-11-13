@@ -6,8 +6,9 @@
 
 #include "loggers.h"
 #include "colors.h"
+#include "responses.h"
 
-void log_info(const char *message, struct sockaddr_in *client_address)
+void log_info(const char *message, struct sockaddr_in *address)
 {
     char datetime[20];  // Buffer for storing the formatted date and time
 
@@ -20,8 +21,8 @@ void log_info(const char *message, struct sockaddr_in *client_address)
 
     // Extract IP address and port information
     char ipAddr[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &(client_address->sin_addr), ipAddr, INET_ADDRSTRLEN);
-    int port = ntohs(client_address->sin_port);
+    inet_ntop(AF_INET, &(address->sin_addr), ipAddr, INET_ADDRSTRLEN);
+    int port = ntohs(address->sin_port);
 
     // Log the message in the desired format
     printf(ANSI_COLOR_BLUE"[%s %s:%d] %s\n"ANSI_COLOR_RESET, datetime, ipAddr, port, message);
@@ -39,4 +40,27 @@ void log_errno_error(const char *error_format)
     char error_message[size + 1];
     sprintf(error_message, error_format, error_reason);
     log_error(error_message);
+}
+
+void log_response(char response, struct sockaddr_in *address)
+{
+    switch (response) {
+        case NOT_FOUND_RESPONSE:
+            log_info("NOT_FOUND_RESPONSE", address);
+            break;
+        case INTERNAL_ERROR_RESPONSE:
+            log_info("INTERNAL_ERROR_RESPONSE", address);
+            break;
+        case INVALID_REQUEST_RESPONSE:
+            log_info("INVALID_REQUEST_RESPONSE", address);
+            break;
+        case INVALID_REQUEST_CONTENT_RESPONSE:
+            log_info("INVALID_REQUEST_CONTENT_RESPONSE", address);
+            break;
+        case ALREADY_EXISTS_RESPONSE:
+            log_info("ALREADY_EXISTS_RESPONSE", address);
+            break;
+        default:
+            break;
+    }
 }

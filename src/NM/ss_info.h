@@ -16,4 +16,8 @@ void remove_path(char *path);
 
 int get_ss_id_of_path(char *path);
 
+int get_random_registered_ss_id();
+
+struct sockaddr_in get_nm_connection_address(int ss_id);
+
 #endif // SS_INFO_H
