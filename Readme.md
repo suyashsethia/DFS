@@ -18,6 +18,20 @@ Client Side (Aditya)
   - CREATE <file_path>
     - Send Create Request with file / Folder Path
     - recieve response from NM
+    
+Overall Implementations :
+- Create and Update content of files & folders within the NFS.
+- Reading a file.
+- Deleting a file / Folder.
+- Listing all files / folders from a folder.
+- Getting additional information.
+- Clients [50]
+    - Directory Mounting
+    - Reading, Writing, and Retrieving Information about Files
+    - Creating and Deleting Files and Folders
+    - Copying Files/Directories Between Storage Servers
+- Other features
+    - Multiple Clients 
 
 NM Side (Ayan )
 
