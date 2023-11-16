@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-all: nm.out ss.out
+all: nm.out ss.out client.out
 
 clean:
 	rm -r *.o *.out
@@ -50,3 +50,12 @@ SS/main.o: SS/main.c SS/initialize.h
 
 SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h
 	$(CC) $(CFLAGS) -c SS/initialize.c -o $@
+
+client.out: Client/main.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+Client/main.o: Client/main.c  Client/create.h
+	$(CC) $(CFLAGS) -c Client/main.c -o $@
+
+Client/create.o: Client/create.c Client/create.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
+	$(CC) $(CFLAGS) -c Client/create.c -o $@

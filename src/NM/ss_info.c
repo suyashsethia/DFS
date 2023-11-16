@@ -7,7 +7,6 @@
 #include "trie.h"
 
 
-
 pthread_rwlock_t is_registered_lock = PTHREAD_RWLOCK_INITIALIZER;
 bool is_registered[MAX_SS_COUNT] = {false};
 
@@ -74,6 +73,7 @@ int get_ss_id_of_path(char *path)
 
 int get_random_registered_ss_id()
 {
+    
     int registered_ssids[MAX_SS_COUNT];
     int registered_count = 0;
     pthread_rwlock_rdlock(&is_registered_lock);
@@ -81,6 +81,10 @@ int get_random_registered_ss_id()
         if (is_registered[i])
             registered_ssids[registered_count++] = i;
     pthread_rwlock_unlock(&is_registered_lock);
+
+    if (registered_count == 0)
+        return -1;
+
     srand(time(NULL));
     int random_index = rand() % registered_count;
     return registered_ssids[random_index];

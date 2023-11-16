@@ -28,6 +28,9 @@ char create_request_handler(int client_socket, struct sockaddr_in client_socket_
         }
     } else {
         ss_id = get_random_registered_ss_id();
+        if (ss_id == -1) {
+            return INTERNAL_ERROR_RESPONSE;
+        }
     }
     struct sockaddr_in connection_address = get_nm_connection_address(ss_id);
     int connection_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -47,7 +50,7 @@ char create_request_handler(int client_socket, struct sockaddr_in client_socket_
     }
 
     char response;
-    if (receive_response(connection_socket, &response)) {
+    if (receive_response(connection_socket, &response) == -1) {
         log_errno_error("Couldn't receive response: %s\n");
         return INTERNAL_ERROR_RESPONSE;
     }

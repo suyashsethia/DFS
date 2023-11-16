@@ -28,9 +28,10 @@ void *client_handler(void *client_handler_arguments_raw)
     switch (request_buffer.request_type) {
         case CREATE_REQUEST:
             log_info("CREATE_REQUEST", &client_handler_arguments->client_address);
-            char response = create_request_handler(client_handler_arguments->socket, client_handler_arguments->client_address,
-                                   request_buffer.request_content.create_request_data.path,
-                                   request_buffer.request_content.create_request_data.is_folder);
+            char response = create_request_handler(client_handler_arguments->socket,
+                                                   client_handler_arguments->client_address,
+                                                   request_buffer.request_content.create_request_data.path,
+                                                   request_buffer.request_content.create_request_data.is_folder);
             log_response(response, &client_handler_arguments->client_address);
             if (send_response(client_handler_arguments->socket, response) == -1) {
                 log_errno_error("Couldn't send response: %s\n");
@@ -77,13 +78,14 @@ void *client_connection_acceptor_thread()
             log_errno_error("Couldn't malloc: %s\n");
             return NULL;
         }
-        int client_socket = accept(server_socket, (struct sockaddr *) &client_handler_arguments->client_address,
-                                   &client_handler_arguments->client_address_size);
-        if (client_socket == -1) {
+        client_handler_arguments->socket = accept(server_socket,
+                                                  (struct sockaddr *) &client_handler_arguments->client_address,
+                                                  &client_handler_arguments->client_address_size);
+        if (client_handler_arguments->socket == -1) {
             log_errno_error("Error while accepting connection: %s\n");
             continue;
         }
         pthread_t client_handler_thread_id;
-        pthread_create(&client_handler_thread_id, NULL, client_handler, &client_handler_arguments);
+        pthread_create(&client_handler_thread_id, NULL, client_handler, client_handler_arguments);
     }
 }
