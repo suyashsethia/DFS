@@ -54,17 +54,20 @@ SS/nm_handler.o: SS/nm_handler.c SS/nm_handler.h
 SS/client_handler.o: SS/client_handler.c SS/client_handler.h
 	$(CC) $(CFLAGS) -c SS/client_handler.c -o $@
 
-SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h SS/create.h
+SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h 
 	$(CC) $(CFLAGS) -c SS/initialize.c -o $@
 
 SS/create.o: SS/create.c SS/create.h Common/network_config.h Common/requests.h Common/responses.h
 	$(CC) $(CFLAGS) -c SS/create.c -o $@
 
-client.out: Client/main.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o
+client.out: Client/main.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o Client/delete.o
 	$(CC) $(CFLAGS) $^ -o $@
 
-Client/main.o: Client/main.c  Client/create.h
+Client/main.o: Client/main.c  Client/create.h Client/delete.h
 	$(CC) $(CFLAGS) -c Client/main.c -o $@
 
 Client/create.o: Client/create.c Client/create.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
 	$(CC) $(CFLAGS) -c Client/create.c -o $@
+
+Client/delete.o: Client/delete.c Client/delete.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
+	$(CC) $(CFLAGS) -c Client/delete.c -o $@
