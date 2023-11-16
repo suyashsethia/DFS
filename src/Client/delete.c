@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "delete.h"
 #include "../Common/network_config.h"
