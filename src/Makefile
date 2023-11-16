@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-all: nm.out
+all: nm.out ss.out
 
 clean:
 	rm -r *.o *.out
@@ -21,7 +21,7 @@ NM/ss_handler.o: NM/ss_handler.c NM/ss_handler.h Common/requests.h Common/respon
 NM/request_handlers/create_request_handler.o: NM/request_handlers/create_request_handler.h NM/request_handlers/create_request_handler.c Common/responses.h Common/loggers.h Common/path_utils.h NM/ss_info.h
 	$(CC) $(CFLAGS) -c NM/request_handlers/create_request_handler.c -o $@
 
-NM/ss_info.o: NM/ss_info.c NM/ss_info.h NM/trie.h
+NM/ss_info.o: NM/ss_info.c NM/ss_info.h NM/trie.h Common/network_config.h
 	$(CC) $(CFLAGS) -c NM/ss_info.c -o $@
 
 NM/trie.o: NM/trie.c NM/trie.h
@@ -41,3 +41,12 @@ Common/loggers.o: Common/loggers.c Common/loggers.h Common/colors.h Common/respo
 
 Common/path_utils.o: Common/path_utils.c Common/path_utils.h
 	$(CC) $(CFLAGS) -c Common/path_utils.c -o $@
+
+ss.out: SS/main.o SS/initialize.o Common/requests.o Common/responses.o Common/network_utils.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+SS/main.o: SS/main.c SS/initialize.h
+	$(CC) $(CFLAGS) -c SS/main.c -o $@
+
+SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h
+	$(CC) $(CFLAGS) -c SS/initialize.c -o $@

@@ -1,4 +1,3 @@
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
@@ -9,8 +8,12 @@
 #include<arpa/inet.h>
 #include<string.h>
 
+#include "initialize.h"
+#include "../Common/network_config.h"
+#include "../Common/requests.h"
+#include "../Common/responses.h"
 
-int main()
+int initialize()
 {
     //send request for connection , initialization to nm 
 

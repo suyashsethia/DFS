@@ -18,7 +18,7 @@ void create(int client_socket)
     char type[100];
     scanf("%s", type);
     int return_value;
-    if (strcmp(type, 'folder'))
+    if (strcmp(type, "folder"))
     {
         return_value = send_create_request(client_socket, path, true);
     }

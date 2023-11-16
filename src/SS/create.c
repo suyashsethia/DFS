@@ -1,7 +1,7 @@
 #include "create.h"
-#include "network_utils.h"
-#include "requests.h"
-#include "responses.h"
+#include "../Common/network_utils.h"
+#include "../Common/requests.h"
+#include "../Common/responses.h"
 #include <arpa/inet.h>
 
 int create_folder(const char *path)
@@ -18,7 +18,7 @@ int create_file(const char *path)
     fclose(file);
     return 0;
 }
-int main()
+int nm_handler()
 {
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);    // Request request_buffer = (Request *)calloc(1, sizeof(Request));
     Request request_buffer;

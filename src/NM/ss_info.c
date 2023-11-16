@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "../Common/network_config.h"
 #include "ss_info.h"
 #include "trie.h"
 
 
-#define MAX_SS_COUNT 1024
 
 pthread_rwlock_t is_registered_lock = PTHREAD_RWLOCK_INITIALIZER;
 bool is_registered[MAX_SS_COUNT] = {false};

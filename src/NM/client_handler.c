@@ -28,9 +28,13 @@ void *client_handler(void *client_handler_arguments_raw)
     switch (request_buffer.request_type) {
         case CREATE_REQUEST:
             log_info("CREATE_REQUEST", &client_handler_arguments->client_address);
-            create_request_handler(client_handler_arguments->socket, client_handler_arguments->client_address,
+            char response = create_request_handler(client_handler_arguments->socket, client_handler_arguments->client_address,
                                    request_buffer.request_content.create_request_data.path,
                                    request_buffer.request_content.create_request_data.is_folder);
+            log_response(response, &client_handler_arguments->client_address);
+            if (send_response(client_handler_arguments->socket, response) == -1) {
+                log_errno_error("Couldn't send response: %s\n");
+            }
             break;
         default:
             log_info("INVALID_REQUEST_RESPONSE", &client_handler_arguments->client_address);
