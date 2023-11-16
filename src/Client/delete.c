@@ -3,35 +3,35 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-#include "create.h"
+#include "delete.h"
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
 #include "../Common/loggers.h"
 
 
-void create()
+void delete_()
 {
     char path[MAX_PATH_LENGTH + 1];
-    printf("Enter Path (with new file/folder):");
+    printf("Enter Path (of file/folder):");
     if (fgets(path, sizeof(path), stdin) == NULL) {
         return;
     }
     size_t path_size = strlen(path);
     path[path_size - 1] = '\0'; // set newline to null
-    printf("Create a File(F) or a Directory(D):");
-    char file_or_folder[1024];
-    if (fgets(file_or_folder, sizeof(file_or_folder), stdin) == NULL)
-        return;
-    bool is_folder;
-    if (file_or_folder[0] == 'F') {
-        is_folder = false;
-    } else if (file_or_folder[0] == 'D') {
-        is_folder = true;
-    } else {
-        printf("Invalid Option\n");
-        return;
-    }
+    // printf("Delete a File(F) or a Directory(D):");
+    // char file_or_folder[1024];
+    // if (fgets(file_or_folder, sizeof(file_or_folder), stdin) == NULL)
+    //     return;
+    // bool is_folder;
+    // if (file_or_folder[0] == 'F') {
+    //     is_folder = false;
+    // } else if (file_or_folder[0] == 'D') {
+    //     is_folder = true;
+    // } else {
+    //     printf("Invalid Option\n");
+    //     return;
+    // }
 
     struct sockaddr_in nm_address = {
         .sin_family=AF_INET,
@@ -50,9 +50,9 @@ void create()
         log_errno_error("Couldn't connect to ss: %s\n");
         return;
     }
-
-    if (send_create_request(connection_socket, path, is_folder) == -1) {
-        log_errno_error("Couldn't send create request: %s\n");
+    // need changes here
+    if (send_delete_request(connection_socket, path) == -1) {
+        log_errno_error("Couldn't send delete request: %s\n");
         return;
     }
 

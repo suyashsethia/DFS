@@ -62,3 +62,6 @@ Client/main.o: Client/main.c  Client/create.h
 
 Client/create.o: Client/create.c Client/create.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
 	$(CC) $(CFLAGS) -c Client/create.c -o $@
+
+Client/delete.o: Client/delete.c Client/delete.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
+	$(CC) $(CFLAGS) -c Client/delete.c -o $@

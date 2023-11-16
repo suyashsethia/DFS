@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "create.h"
+#include "delete.h"
 
 int main()
 {
@@ -17,7 +18,9 @@ int main()
         if (strcmp(command, "CREATE\n") == 0) {
             create();
         }
-
+        if (strcmp(command, "DELETE\n") == 0) {
+            delete_();
+        }
     }
 
     printf("Thank you, Client is closed, Happy diwali\n");
