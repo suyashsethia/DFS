@@ -13,25 +13,27 @@
 - File and Folder
 
 Client Side (Aditya)
+
 - Create a connection with the NM
 - Prompt the user for an action
   - CREATE <file_path>
     - Send Create Request with file / Folder Path
     - recieve response from NM
-    
+
 Overall Implementations :
+
 - Create and Update content of files & folders within the NFS.
 - Reading a file.
 - Deleting a file / Folder.
 - Listing all files / folders from a folder.
 - Getting additional information.
 - Clients [50]
-    - Directory Mounting
-    - Reading, Writing, and Retrieving Information about Files
-    - Creating and Deleting Files and Folders
-    - Copying Files/Directories Between Storage Servers
+  - Directory Mounting
+  - Reading, Writing, and Retrieving Information about Files
+  - Creating and Deleting Files and Folders
+  - Copying Files/Directories Between Storage Servers
 - Other features
-    - Multiple Clients 
+  - Multiple Clients
 
 NM Side (Ayan )
 
@@ -43,6 +45,15 @@ NM Side (Ayan )
 - send response 200 to client
 
 SS Side (Suyash)
+
+Initialisation
+
+- Get ssid from commandline
+- Check if root folder of ssid exists
+  - if not then create
+  - if exists get list of all paths
+- send register request with all paths, ssid, addresses
+- start nm_handler thread and client_handler_thread
 
 - Recieve CREATE request from NM
 - Create file in correct Path inside Root
