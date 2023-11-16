@@ -103,7 +103,7 @@ int initialize(int argc, char *argv[])
         recursive_path_finder(ss_id, list_of_paths, &paths_count);
     }
 
-    // connecting SS to NM
+    // connecting NM
     int server_port = SS_NM_HANDLER_BASE_PORT + atoi(ss_id);
 
 
@@ -120,11 +120,7 @@ int initialize(int argc, char *argv[])
         .sin_addr = {
             .s_addr = inet_addr(SS_NM_HANDLER_IP),
         }};
-    if (bind(server_socket, (struct sockaddr *)&ss_nm_server_address, sizeof(ss_nm_server_address)) == -1)
-    {
-        printf("Error while binding SS Handler Socket: \n");
-        return 0;
-    }
+
 
     // connecting SS to Client
 
@@ -141,12 +137,6 @@ int initialize(int argc, char *argv[])
         .sin_addr = {
             .s_addr = inet_addr(SS_CLIENT_HANDLER_IP),
         }};
-
-    if (bind(client_socket, (struct sockaddr *)&SS_client_address, sizeof(SS_client_address)) == -1)
-    {
-        printf("Error while binding Client Handler Socket: \n");
-        return 0;
-    }
 
     send_register_ss_request(server_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths);
 

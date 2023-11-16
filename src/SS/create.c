@@ -33,7 +33,6 @@ int nm_handler()
             if (request_buffer.request_content.create_request_data.is_folder)
             {
                 // printf("Folder creation request received\n");
-                // printf("Folder path: %s\n", request_buffer.request_content.create_request_data.path);
                 if (create_folder(request_buffer.request_content.create_request_data.path))
                 {
                     time_t current_time;
