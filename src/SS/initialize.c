@@ -103,16 +103,36 @@ int initialize(int argc, char *argv[])
         recursive_path_finder(ss_id, list_of_paths, &paths_count);
     }
 
+    int nm_init_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (nm_init_socket == -1)
+    {
+        printf("Error while creating NM Init Socket:\n");
+        return 0;
+    }
+
+    struct sockaddr_in nm_init_server_address = {
+        .sin_family = AF_INET,
+        .sin_port = htons(NM_SS_HANDLER_SERVER_PORT),
+        .sin_addr = {
+            .s_addr = inet_addr(NM_SS_HANDLER_SERVER_IP),
+        }};
+
+    int k = connect(nm_init_socket, (struct sockaddr *)&nm_init_server_address, sizeof(nm_init_server_address));
+    if (k == -1)
+    {
+        // errior
+    }
+
+
     // connecting NM
     int server_port = SS_NM_HANDLER_BASE_PORT + atoi(ss_id);
 
-
-    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket == -1)
-    {
-        printf("Error while creating NM Handler Socket:\n");
-        return 0;
-    }
+    // int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    // if (server_socket == -1)
+    // {
+    //     printf("Error while creating NM Handler Socket:\n");
+    //     return 0;
+    // }
 
     struct sockaddr_in ss_nm_server_address = {
         .sin_family = AF_INET,
@@ -121,16 +141,15 @@ int initialize(int argc, char *argv[])
             .s_addr = inet_addr(SS_NM_HANDLER_IP),
         }};
 
-
     // connecting SS to Client
 
-    int client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    // int client_socket = socket(AF_INET, SOCK_STREAM, 0);
     int client_port = SS_CLIENT_HANDLER_BASE_PORT + atoi(ss_id);
-    if (client_socket == -1)
-    {
-        printf("Error while creating Client Handler Socket:\n");
-        return 0;
-    }
+    // if (client_socket == -1)
+    // {
+    //     printf("Error while creating Client Handler Socket:\n");
+    //     return 0;
+    // }
     struct sockaddr_in SS_client_address = {
         .sin_family = AF_INET,
         .sin_port = htons(client_port),
@@ -138,7 +157,7 @@ int initialize(int argc, char *argv[])
             .s_addr = inet_addr(SS_CLIENT_HANDLER_IP),
         }};
 
-    send_register_ss_request(server_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths);
+    send_register_ss_request(nm_init_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths);
 
     return 0;
 }
