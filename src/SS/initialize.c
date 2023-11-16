@@ -15,6 +15,7 @@
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
+#include "../Common/loggers.h"
 
 int create_folder(const char *path)
 {
@@ -37,7 +38,8 @@ void recursive_path_finder(char *ss_id, char *list_of_paths[100], int *paths_cou
     dir = opendir(ss_id);
     if (dir == NULL)
     {
-        perror("Unable to open directory");
+        log_errno_error("Unable to open directory");
+        // perror("Unable to open directory");
         return;
     }
 
@@ -79,7 +81,8 @@ int initialize(int argc, char *argv[])
         list_of_paths[i] = (char *)malloc(sizeof(char)); // Adjust the size as needed
         if (list_of_paths[i] == NULL)
         {
-            fprintf(stderr, "Error: Memory allocation failed\n");
+            log_errno_error("Error: Memory allocation failed");
+            // fprintf(stderr, "Error: Memory allocation failed\n");
             return 1;
         }
     }
@@ -106,7 +109,8 @@ int initialize(int argc, char *argv[])
     int nm_init_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (nm_init_socket == -1)
     {
-        printf("Error while creating NM Init Socket:\n");
+        log_errno_error("Error while creating NM Init Socket:\n");
+        // printf("Error while creating NM Init Socket:\n");
         return 0;
     }
 
@@ -120,19 +124,11 @@ int initialize(int argc, char *argv[])
     int k = connect(nm_init_socket, (struct sockaddr *)&nm_init_server_address, sizeof(nm_init_server_address));
     if (k == -1)
     {
-        // errior
+        log_errno_error("Error while connecting NM Init Socket:\n");
     }
-
 
     // connecting NM
     int server_port = SS_NM_HANDLER_BASE_PORT + atoi(ss_id);
-
-    // int server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    // if (server_socket == -1)
-    // {
-    //     printf("Error while creating NM Handler Socket:\n");
-    //     return 0;
-    // }
 
     struct sockaddr_in ss_nm_server_address = {
         .sin_family = AF_INET,
@@ -145,11 +141,6 @@ int initialize(int argc, char *argv[])
 
     // int client_socket = socket(AF_INET, SOCK_STREAM, 0);
     int client_port = SS_CLIENT_HANDLER_BASE_PORT + atoi(ss_id);
-    // if (client_socket == -1)
-    // {
-    //     printf("Error while creating Client Handler Socket:\n");
-    //     return 0;
-    // }
     struct sockaddr_in SS_client_address = {
         .sin_family = AF_INET,
         .sin_port = htons(client_port),
@@ -157,7 +148,13 @@ int initialize(int argc, char *argv[])
             .s_addr = inet_addr(SS_CLIENT_HANDLER_IP),
         }};
 
-    send_register_ss_request(nm_init_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths);
-
+    if (send_register_ss_request(nm_init_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths) == 0)
+    {
+        log_info("Initialised SS connection with NM\n" , nm_init_socket);
+    }
+    else
+    {
+        log_errno_error("Error while sending register request to NM\n");
+    }
     return 0;
 }
