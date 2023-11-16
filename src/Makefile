@@ -42,11 +42,14 @@ Common/loggers.o: Common/loggers.c Common/loggers.h Common/colors.h Common/respo
 Common/path_utils.o: Common/path_utils.c Common/path_utils.h
 	$(CC) $(CFLAGS) -c Common/path_utils.c -o $@
 
-ss.out: SS/main.o SS/initialize.o Common/requests.o Common/responses.o Common/network_utils.o
+ss.out: SS/main.o SS/initialize.o Common/requests.o Common/responses.o Common/network_utils.o 
 	$(CC) $(CFLAGS) $^ -o $@
 
 SS/main.o: SS/main.c SS/initialize.h
 	$(CC) $(CFLAGS) -c SS/main.c -o $@
 
-SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h
+SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h SS/create.h
 	$(CC) $(CFLAGS) -c SS/initialize.c -o $@
+
+SS/create.o: SS/create.c SS/create.h Common/network_config.h Common/requests.h Common/responses.h
+	$(CC) $(CFLAGS) -c SS/create.c -o $@
