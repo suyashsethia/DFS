@@ -6,7 +6,6 @@
 #include "ss_info.h"
 #include "trie.h"
 
-
 pthread_rwlock_t is_registered_lock = PTHREAD_RWLOCK_INITIALIZER;
 bool is_registered[MAX_SS_COUNT] = {false};
 
@@ -17,7 +16,7 @@ pthread_rwlock_t client_connection_addresses_lock = PTHREAD_RWLOCK_INITIALIZER;
 struct sockaddr_in client_connection_addresses[MAX_SS_COUNT];
 
 pthread_rwlock_t path_ss_info_lock = PTHREAD_RWLOCK_INITIALIZER;
-TrieNode path_ss_info = {.data=TRIE_SENTINEL_DATA, .character='\0', .children={NULL}};
+TrieNode path_ss_info = {.data = TRIE_SENTINEL_DATA, .character = '\0', .children = {NULL}};
 
 void register_ss(int ss_id, struct sockaddr_in nm_connection_address, struct sockaddr_in client_connection_address,
                  uint64_t accessible_paths_count, char **accessible_paths)
@@ -38,7 +37,6 @@ void register_ss(int ss_id, struct sockaddr_in nm_connection_address, struct soc
     pthread_rwlock_wrlock(&is_registered_lock);
     is_registered[ss_id] = true;
     pthread_rwlock_unlock(&is_registered_lock);
-
 }
 
 void unregister_ss(int ss_id)
@@ -70,10 +68,9 @@ int get_ss_id_of_path(char *path)
     return ss_id;
 }
 
-
 int get_random_registered_ss_id()
 {
-    
+
     int registered_ssids[MAX_SS_COUNT];
     int registered_count = 0;
     pthread_rwlock_rdlock(&is_registered_lock);
@@ -89,7 +86,6 @@ int get_random_registered_ss_id()
     int random_index = rand() % registered_count;
     return registered_ssids[random_index];
 }
-
 
 struct sockaddr_in get_nm_connection_address(int ss_id)
 {

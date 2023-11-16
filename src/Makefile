@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -std=gnu17
 
 all: nm.out ss.out client.out
 
