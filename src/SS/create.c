@@ -1,7 +1,8 @@
-#include "ss.h"
+#include "create.h"
 #include "network_utils.h"
 #include "requests.h"
 #include "responses.h"
+#include <arpa/inet.h>
 
 int create_folder(const char *path)
 {
@@ -19,10 +20,11 @@ int create_file(const char *path)
 }
 int main()
 {
-    // Request request_buffer = (Request *)calloc(1, sizeof(Request));
+    int server_socket = socket(AF_INET, SOCK_STREAM, 0);    // Request request_buffer = (Request *)calloc(1, sizeof(Request));
     Request request_buffer;
-    if (receive_request(&request_buffer) == 0)
+    if (receive_request(server_socket ,&request_buffer) == 0)
     {
+        
         printf("Request received\n");
         // print request with time stamp socket id and request type
         if (request_buffer.request_type == CREATE_REQUEST)
