@@ -54,7 +54,7 @@ SS/nm_handler.o: SS/nm_handler.c SS/nm_handler.h Common/network_config.h Common/
 SS/client_handler.o: SS/client_handler.c SS/client_handler.h Common/loggers.h Common/network_config.h
 	$(CC) $(CFLAGS) -c SS/client_handler.c -o $@
 
-SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h 
+SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
 	$(CC) $(CFLAGS) -c SS/initialize.c -o $@
 
 SS/create.o: SS/create.c SS/create.h Common/network_config.h Common/requests.h Common/responses.h
