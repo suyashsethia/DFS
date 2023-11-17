@@ -14,11 +14,12 @@
 void read()
 {
     char path[MAX_PATH_LENGTH + 1];
-    printf("Enter Path (to read file/folder):");
+    printf("Enter Path (to read file):");
     if (fgets(path, sizeof(path), stdin) == NULL) {
         return;
     }
-
+    size_t path_size = strlen(path);
+    path[path_size - 1] = '\0'; // set newline to null
 
     struct sockaddr_in nm_address = {
         .sin_family=AF_INET,

@@ -4,6 +4,7 @@
 #include "create.h"
 #include "delete.h"
 #include "read.h"
+#include "write.h"
 
 int main()
 {
@@ -25,6 +26,10 @@ int main()
         // for reading files 
         if ( strcmp (command, "READ\n") == 0){
             read();
+        }
+        // for writing files
+        if ( strcmp (command, "WRITE\n") == 0){
+            write();
         }
     }
 

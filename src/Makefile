@@ -77,3 +77,5 @@ Client/create.o: Client/create.c Client/create.h Common/network_config.h Common/
 
 Client/delete.o: Client/delete.c Client/delete.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
 	$(CC) $(CFLAGS) -c Client/delete.c -o $@
+
+#  NOT YET ADDED WRTITE AND READ FOR CLIENT
