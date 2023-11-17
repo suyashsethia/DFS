@@ -1,9 +1,7 @@
 # Not implemented yet:
 
 connection with SS:
-- Get Size and Permissions: Clients can query Storage Servers to retrieve essential file information such as size and access permissions, aiding in file management.
-
-- Getting Additional Information: Clients can access a wealth of supplementary information about specific files. This includes details such as file size, access rights, timestamps, and other metadata, providing clients with comprehensive insights into the files they interact with
+- Get Size and Permissions: Clients can query Storage Servers to retrieve essential file information such as size and access permissions, aiding in file management. Getting Additional Information: Clients can access a wealth of supplementary information about specific files. This includes details such as file size, access rights, timestamps, and other metadata, providing clients with comprehensive insights into the files they interact with
 
 - Listing All Files and Folders in a Folder: Navigating the NFS structure becomes effortless for clients as they can retrieve comprehensive listings of files and subfolders within a specified directory. This feature aids in efficient file system exploration and management.
 
@@ -15,3 +13,4 @@ Client Request: Clients can request to copy files or directories between SS by p
 # UNCHECKED:
 - Read
 - Write
+- Copy

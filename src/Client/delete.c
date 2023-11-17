@@ -20,19 +20,6 @@ void delete_()
     }
     size_t path_size = strlen(path);
     path[path_size - 1] = '\0'; // set newline to null
-    // printf("Delete a File(F) or a Directory(D):");
-    // char file_or_folder[1024];
-    // if (fgets(file_or_folder, sizeof(file_or_folder), stdin) == NULL)
-    //     return;
-    // bool is_folder;
-    // if (file_or_folder[0] == 'F') {
-    //     is_folder = false;
-    // } else if (file_or_folder[0] == 'D') {
-    //     is_folder = true;
-    // } else {
-    //     printf("Invalid Option\n");
-    //     return;
-    // }
 
     struct sockaddr_in nm_address = {
         .sin_family=AF_INET,

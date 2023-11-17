@@ -5,6 +5,7 @@
 #include "delete.h"
 #include "read.h"
 #include "write.h"
+#include "copy.h"
 
 int main()
 {
@@ -14,7 +15,7 @@ int main()
         char command[100];
         printf("ENTER THE COMMAND (all caps)\n");
         fgets(command, sizeof(command), stdin);
-        if (strcmp(command, "end\n") == 0) {
+        if (strcmp(command, "exit\n") == 0) {
             break;
         }
         if (strcmp(command, "CREATE\n") == 0) {
@@ -30,6 +31,9 @@ int main()
         // for writing files
         if ( strcmp (command, "WRITE\n") == 0){
             write();
+        }
+        if (strcmp(command, "COPY\n") == 0) {
+            copy();
         }
     }
 
