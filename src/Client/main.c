@@ -3,10 +3,11 @@
 
 #include "create.h"
 #include "delete.h"
-#include "read.h"
-#include "write.h"
-#include "copy.h"
-#include "list.h"
+// #include "read.h"
+// #include "write.h"
+// #include "copy.h"
+// #include "list.h"
+// #include "get.h"
 
 int main()
 {
@@ -26,19 +27,22 @@ int main()
             delete_();
         }
         // for reading files 
-        if ( strcmp (command, "READ\n") == 0){
-            read();
-        }
-        // for writing files
-        if ( strcmp (command, "WRITE\n") == 0){
-            write();
-        }
-        if (strcmp(command, "COPY\n") == 0) {
-            copy();
-        }
-        if (strcmp(command, "LIST\n") == 0) {
-            list();
-        }
+        // if ( strcmp (command, "READ\n") == 0){
+        //     read();
+        // }
+        // // for writing files
+        // if ( strcmp (command, "WRITE\n") == 0){
+        //     write();
+        // }
+        // if (strcmp(command, "COPY\n") == 0) {
+        //     copy();
+        // }
+        // if (strcmp(command, "LIST\n") == 0) {
+        //     list();
+        // }
+        // if (strcmp(command, "GET\n") == 0) {
+        //     get();
+        // }
     }
 
     printf("Thank you, Client is closed, Happy diwali\n");

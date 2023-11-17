@@ -61,7 +61,7 @@ void copy()
         log_errno_error("Couldn't connect to ss: %s\n");
         return;
     }
-    // SENDING READ REQUEST WITH THE PATH 
+    // SENDING COPY REQUEST WITH THE PATH 
     if (send_copy_request(connection_socket, source_path, destination_path, is_folder) == -1) {
         log_errno_error("Couldn't send copy request: %s\n");
         return;

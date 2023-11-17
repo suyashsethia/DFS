@@ -4,14 +4,14 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "list.h"
+#include "get.h"
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
 #include "../Common/loggers.h"
 
 
-void list()
+void get()
 {
     char path[MAX_PATH_LENGTH + 1];
     printf("Enter Path :");
@@ -38,15 +38,15 @@ void list()
         log_errno_error("Couldn't connect to ss: %s\n");
         return;
     }
-    // SENDING LIST REQUEST WITH THE PATH 
-    if (send_list_request(connection_socket, path) == -1) {
-        log_errno_error("Couldn't send list request: %s\n");
+    // SENDING GET REQUEST WITH THE PATH 
+    if (send_get_request(connection_socket, path) == -1) {
+        log_errno_error("Couldn't send get request: %s\n");
         return;
     }
     // RECEIVING RESPONSE WITH HAS AN ADDRESS  
     char response;
     char address[100];
-    if (receive_list_response(connection_socket, &response, &address) == -1) {
+    if (receive_get_response(connection_socket, &response, &address) == -1) {
         log_errno_error("Couldn't receive response: %s\n");
         return;
     }
@@ -56,21 +56,21 @@ void list()
     // MAKE A NEW CONNECTION TO SS
     int ss_connection;
 
-    // SENDING LIST REQUEST WITH THE PATH 
-    if (send_list_request(connection_socket, path) == -1) {
-        log_errno_error("Couldn't send list request to ss: %s\n");
+    // SENDING GET REQUEST WITH THE PATH 
+    if (send_get_request(connection_socket, path) == -1) {
+        log_errno_error("Couldn't send get request to ss: %s\n");
         return;
     }
     
     // RECEIVING RESPONSE WITH HAS AN ADDRESS  
     char response;
-    char list[1000];
-    if (receive_list_response(connection_socket, &response, &list) == -1) {
+    char get[1000];
+    if (receive_get_response(connection_socket, &response, &get) == -1) {
         log_errno_error("Couldn't receive response to ss: %s\n");
         return;
     }
     // printing the data
-    printf("%s\n", list);
+    printf("%s\n", get);
     log_response(response,&address );
     close(ss_connection);
 }

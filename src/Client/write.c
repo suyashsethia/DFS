@@ -43,7 +43,7 @@ void write()
         log_errno_error("Couldn't connect to ss: %s\n");
         return;
     }
-    // SENDING READ REQUEST WITH THE PATH 
+    // SENDING WRITE REQUEST WITH THE PATH 
     if (send_write_request(connection_socket, path) == -1) {
         log_errno_error("Couldn't send write request: %s\n");
         return;
@@ -51,7 +51,7 @@ void write()
     // RECEIVING RESPONSE WITH HAS AN ADDRESS  
     char response;
     char address[100];
-    if (receive_read_response(connection_socket, &response, &address) == -1) {
+    if (receive_write_response(connection_socket, &response, &address) == -1) {
         log_errno_error("Couldn't receive response: %s\n");
         return;
     }
@@ -60,14 +60,14 @@ void write()
 
     // MAKE A NEW CONNECTION TO SS
     int ss_connection;
-    // SENDING READ REQUEST WITH THE PATH 
+    // SENDING WRITE REQUEST WITH THE PATH 
     if (send_write_request_ss(connection_socket, data) == -1) {
         log_errno_error("Couldn't send write request to ss: %s\n");
         return;
     }
     // RECEIVING RESPONSE WITH HAS AN ADDRESS  
     char response;
-    if (receive_read_response(connection_socket, &response, &data) == -1) {
+    if (receive_write_response(connection_socket, &response, &data) == -1) {
         log_errno_error("Couldn't receive response from ss: %s\n");
         return;
     }

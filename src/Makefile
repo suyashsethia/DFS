@@ -79,4 +79,4 @@ Client/delete.o: Client/delete.c Client/delete.h Common/network_config.h Common/
 	$(CC) $(CFLAGS) -c Client/delete.c -o $@
 
 #  NOT YET ADDED 
-# read / write / copy / list 
+# read / write / copy / list / get

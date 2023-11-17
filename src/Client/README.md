@@ -15,6 +15,7 @@ Client Request: Clients can request to copy files or directories between SS by p
 - Write
 - Copy
 - List
+- Get
 
 # Imp points
 
