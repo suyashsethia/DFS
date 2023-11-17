@@ -11,7 +11,7 @@
 #include "../Common/loggers.h"
 
 
-void write()
+void copy()
 {
     char source_path[MAX_PATH_LENGTH + 1];
     printf("Enter Source path :\n");
@@ -68,7 +68,7 @@ void write()
     }
     // RECEIVING RESPONSE WITH HAS AN ADDRESS  
     char response;
-    if (receive_read_response(connection_socket, &response) == -1) {
+    if (receive_copy_response(connection_socket, &response) == -1) {
         log_errno_error("Couldn't copy response: %s\n");
         return;
     }

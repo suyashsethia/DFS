@@ -6,6 +6,7 @@
 #include "read.h"
 #include "write.h"
 #include "copy.h"
+#include "list.h"
 
 int main()
 {
@@ -34,6 +35,9 @@ int main()
         }
         if (strcmp(command, "COPY\n") == 0) {
             copy();
+        }
+        if (strcmp(command, "LIST\n") == 0) {
+            list();
         }
     }
 
