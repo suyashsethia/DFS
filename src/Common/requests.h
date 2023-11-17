@@ -14,6 +14,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <arpa/inet.h>
 
 typedef struct CreateRequestData
 {

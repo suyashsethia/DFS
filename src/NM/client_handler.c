@@ -44,7 +44,7 @@ void *client_handler(void *client_handler_arguments_raw)
     case DELETE_REQUEST:
         log_info("DELETE_REQUEST", &client_handler_arguments->client_address);
         response = delete_request_handler(
-            request_buffer.request_content.create_request_data.path);
+            request_buffer.request_content.delete_request_data.path);
         log_response(response, &client_handler_arguments->client_address);
         if (send_response(client_handler_arguments->socket, response) == -1)
         {

@@ -61,12 +61,7 @@ void recursive_path_finder(char *ss_id, char *prefix, char list_of_paths[][MAX_P
         else
             snprintf(path, MAX_PATH_LENGTH, "%s", entry->d_name);
 
-        // Check if the entry is a directory
-        if (entry->d_type == NULL || entry->d_type != DT_DIR)
-        {
-            break;
-        }
-        else if (entry->d_type == DT_DIR)
+        if (entry->d_type == DT_DIR)
         {
             // Recursively call the function for subdirectories
             recursive_path_finder(follow_path, path, list_of_paths, paths_count);
@@ -140,11 +135,23 @@ int initialize(int argc, char *argv[])
 
     if (send_register_ss_request(nm_init_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths) == 0)
     {
-        log_info("Initialised SS connection with NM\n", &nm_init_server_address);
+        log_info("Initialisin SS connection with NM\n", &nm_init_server_address);
     }
     else
     {
         log_errno_error("Error while sending register request to NM %s\n");
+    }
+
+    char response;
+    if (receive_response(nm_init_socket, &response) == -1)
+    {
+        log_errno_error("Couldn't receive response: %s\n");
+        exit(-1);
+    }
+    log_response(response, &nm_init_server_address);
+    if (response != OK_RESPONSE)
+    {
+        exit(-1);
     }
     return 0;
 }

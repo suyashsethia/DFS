@@ -8,6 +8,7 @@
 #include "../Common/requests.h"
 #include "../Common/responses.h"
 #include "create.h"
+#include "delete.h"
 
 typedef struct NMHandlerArguments
 {
@@ -52,6 +53,17 @@ void *nm_handler(void *arguments)
             {
                 response = OK_RESPONSE;
             }
+        }
+        break;
+    case DELETE_REQUEST:
+        log_info("DELETE_REQUEST", &nm_arguments->nm_address);
+        if (delete_file_or_folder(nm_arguments->ssid, request_buffer.request_content.delete_request_data.path) == -1)
+        {
+            response = INTERNAL_ERROR_RESPONSE;
+        }
+        else
+        {
+            response = OK_RESPONSE;
         }
         break;
     default:

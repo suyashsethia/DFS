@@ -37,6 +37,10 @@ char delete_request_handler(char *path)
         log_errno_error("Couldn't receive response: %s\n");
         return INTERNAL_ERROR_RESPONSE;
     }
+    if (response == OK_RESPONSE)
+    {
+        remove_path(path);
+    }
 
     return response;
 }

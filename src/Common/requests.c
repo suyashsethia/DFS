@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "network_utils.h"
 #include "requests.h"
@@ -19,7 +20,7 @@ int send_delete_request(int socket, const char *path)
 {
     Request request = {.request_type = DELETE_REQUEST};
     strncpy(request.request_content.delete_request_data.path, path, sizeof(request.request_content.delete_request_data.path));
-
+    printf("deleting %s\n", request.request_content.delete_request_data.path);
     return send_request(socket, &request);
 }
 

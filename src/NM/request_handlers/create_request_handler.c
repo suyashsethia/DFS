@@ -66,5 +66,9 @@ char create_request_handler(char *path, bool is_folder)
         return INTERNAL_ERROR_RESPONSE;
     }
 
+    if (response == OK_RESPONSE){
+        add_path(ss_id, path);
+    }
+
     return response;
 }
