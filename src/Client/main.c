@@ -3,6 +3,7 @@
 
 #include "create.h"
 #include "delete.h"
+#include "read.h"
 
 int main()
 {
@@ -20,6 +21,10 @@ int main()
         }
         if (strcmp(command, "DELETE\n") == 0) {
             delete_();
+        }
+        // for reading files 
+        if ( strcmp (command, "READ\n") == 0){
+            read();
         }
     }
 
