@@ -8,6 +8,7 @@
 #include "../Common/loggers.h"
 #include "../Common/network_config.h"
 #include "request_handlers/create_request_handler.h"
+#include "request_handlers/delete_request_handler.h"
 
 typedef struct ClientHandlerArguments
 {
@@ -25,21 +26,32 @@ void *client_handler(void *client_handler_arguments_raw)
         log_errno_error("Error while receiving request: %s\n");
         return NULL;
     }
-
+    char response;
     switch (request_buffer.request_type)
     {
     case CREATE_REQUEST:
         log_info("CREATE_REQUEST", &client_handler_arguments->client_address);
-        char response = create_request_handler(client_handler_arguments->socket,
-                                               client_handler_arguments->client_address,
-                                               request_buffer.request_content.create_request_data.path,
-                                               request_buffer.request_content.create_request_data.is_folder);
+        response = create_request_handler(
+            request_buffer.request_content.create_request_data.path,
+            request_buffer.request_content.create_request_data.is_folder);
         log_response(response, &client_handler_arguments->client_address);
         if (send_response(client_handler_arguments->socket, response) == -1)
         {
             log_errno_error("Couldn't send response: %s\n");
         }
         break;
+
+    case DELETE_REQUEST:
+        log_info("DELETE_REQUEST", &client_handler_arguments->client_address);
+        response = delete_request_handler(
+            request_buffer.request_content.create_request_data.path);
+        log_response(response, &client_handler_arguments->client_address);
+        if (send_response(client_handler_arguments->socket, response) == -1)
+        {
+            log_errno_error("Couldn't send response: %s\n");
+        }
+        break;
+
     default:
         log_info("INVALID_REQUEST_RESPONSE", &client_handler_arguments->client_address);
         send_response(client_handler_arguments->socket, INVALID_REQUEST_RESPONSE);

@@ -4,5 +4,5 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
-int create_folder(const char *path);
-int create_file(const char *path);
+int create_folder(int ssid, const char *path);
+int create_file(int ssid, const char *path);

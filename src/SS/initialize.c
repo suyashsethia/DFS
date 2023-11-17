@@ -17,19 +17,19 @@
 #include "../Common/responses.h"
 #include "../Common/loggers.h"
 
-int create_folder(const char *path)
+int ss_folder_create(const char *path)
 {
     return mkdir(path, 0777);
 }
 
-int if_folder_exhists(char *ss_id)
+int if_folder_exists(char *ss_id)
 {
     // check if folder named ss_id exists in the current directory
     int x = opendir(ss_id) == NULL ? 0 : 1;
     // printf("x: %d\n", x);
     return x;
 }
-void recursive_path_finder(char *ss_id, char *list_of_paths[100], int *paths_count)
+void recursive_path_finder(char *ss_id, char *prefix, char list_of_paths[][MAX_PATH_LENGTH], int *paths_count)
 {
     DIR *dir;
     struct dirent *entry;
@@ -38,7 +38,7 @@ void recursive_path_finder(char *ss_id, char *list_of_paths[100], int *paths_cou
     dir = opendir(ss_id);
     if (dir == NULL)
     {
-        log_errno_error("Unable to open directory");
+        log_errno_error("Unable to open directory: %s\n");
         // perror("Unable to open directory");
         return;
     }
@@ -53,8 +53,14 @@ void recursive_path_finder(char *ss_id, char *list_of_paths[100], int *paths_cou
         }
 
         // Construct the full path
-        char path[MAX_PATH_LENGTH]; // Adjust the size as needed
-        snprintf(path, sizeof(path), "%s/%s", ss_id, entry->d_name);
+        char *path = list_of_paths[(*paths_count)++];
+        char follow_path[MAX_PATH_LENGTH];
+        snprintf(follow_path, MAX_PATH_LENGTH, "%s/%s", ss_id, entry->d_name);
+        if (*prefix != '\0')
+            snprintf(path, MAX_PATH_LENGTH, "%s/%s", prefix, entry->d_name);
+        else
+            snprintf(path, MAX_PATH_LENGTH, "%s", entry->d_name);
+
         // Check if the entry is a directory
         if (entry->d_type == NULL || entry->d_type != DT_DIR)
         {
@@ -63,9 +69,7 @@ void recursive_path_finder(char *ss_id, char *list_of_paths[100], int *paths_cou
         else if (entry->d_type == DT_DIR)
         {
             // Recursively call the function for subdirectories
-            strcpy(list_of_paths[(*paths_count)++], path);
-
-            recursive_path_finder(path, list_of_paths, paths_count);
+            recursive_path_finder(follow_path, path, list_of_paths, paths_count);
         }
     }
 
@@ -75,41 +79,27 @@ void recursive_path_finder(char *ss_id, char *list_of_paths[100], int *paths_cou
 
 int initialize(int argc, char *argv[])
 {
-    char *list_of_paths[MAX_ACCESIBLE_PATHS];
-    for (int i = 0; i < 100; ++i)
-    {
-        list_of_paths[i] = (char *)malloc(sizeof(char)); // Adjust the size as needed
-        if (list_of_paths[i] == NULL)
-        {
-            log_errno_error("Error: Memory allocation failed");
-            // fprintf(stderr, "Error: Memory allocation failed\n");
-            return 1;
-        }
-    }
+    char list_of_paths[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH];
+    char *ss_id = argv[1];
 
-    char ss_id[MAX_SS_COUNT];
-    strcpy(ss_id, argv[1]);
-    printf("ss_id: %s\n", ss_id);
-
-    int flag = if_folder_exhists(ss_id);
+    int flag = if_folder_exists(ss_id);
     int paths_count = 0;
     if (flag == 0)
     {
-        char path[MAX_PATH_LENGTH]; // Adjust the size as needed
-        strcpy(path, ss_id);        // Copy the original string to the destination
+        char *path = list_of_paths[(paths_count)++]; // Adjust the size as needed
+        strncpy(path, ss_id, MAX_PATH_LENGTH - 1);   // Copy the original string to the destination
         strcat(path, "/");
-        create_folder(ss_id);
-        strcpy(list_of_paths[(paths_count)++], path);
+        ss_folder_create(ss_id);
     }
     else
     {
-        recursive_path_finder(ss_id, list_of_paths, &paths_count);
+        recursive_path_finder(ss_id, "", list_of_paths, &paths_count);
     }
 
     int nm_init_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (nm_init_socket == -1)
     {
-        log_errno_error("Error while creating NM Init Socket:\n");
+        log_errno_error("Error while creating NM Init Socket: %s\n");
         // printf("Error while creating NM Init Socket:\n");
         return 0;
     }
@@ -124,7 +114,7 @@ int initialize(int argc, char *argv[])
     int k = connect(nm_init_socket, (struct sockaddr *)&nm_init_server_address, sizeof(nm_init_server_address));
     if (k == -1)
     {
-        log_errno_error("Error while connecting NM Init Socket:\n");
+        log_errno_error("Error while connecting NM Init Socket: %s\n");
     }
 
     // connecting NM
@@ -150,11 +140,11 @@ int initialize(int argc, char *argv[])
 
     if (send_register_ss_request(nm_init_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths) == 0)
     {
-        log_info("Initialised SS connection with NM\n" , nm_init_socket);
+        log_info("Initialised SS connection with NM\n", &nm_init_server_address);
     }
     else
     {
-        log_errno_error("Error while sending register request to NM\n");
+        log_errno_error("Error while sending register request to NM %s\n");
     }
     return 0;
 }

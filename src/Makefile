@@ -6,13 +6,13 @@ all: nm.out ss.out client.out
 clean:
 	rm -r *.o *.out
 
-nm.out: NM/main.o NM/client_handler.o NM/ss_handler.o Common/requests.o Common/responses.o Common/network_utils.o Common/loggers.o NM/request_handlers/create_request_handler.o NM/ss_info.o NM/trie.o Common/path_utils.o
+nm.out: NM/main.o NM/client_handler.o NM/ss_handler.o Common/requests.o Common/responses.o Common/network_utils.o Common/loggers.o NM/request_handlers/create_request_handler.o NM/ss_info.o NM/trie.o Common/path_utils.o NM/request_handlers/delete_request_handler.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 NM/main.o: NM/main.c NM/client_handler.h NM/ss_handler.h
 	$(CC) $(CFLAGS) -c NM/main.c -o $@
 
-NM/client_handler.o: NM/client_handler.c NM/client_handler.h Common/requests.h Common/responses.h Common/loggers.h Common/network_config.h NM/request_handlers/create_request_handler.h
+NM/client_handler.o: NM/client_handler.c NM/client_handler.h Common/requests.h Common/responses.h Common/loggers.h Common/network_config.h NM/request_handlers/create_request_handler.h NM/request_handlers/delete_request_handler.h
 	$(CC) $(CFLAGS) -c NM/client_handler.c -o $@
 
 NM/ss_handler.o: NM/ss_handler.c NM/ss_handler.h Common/requests.h Common/responses.h NM/ss_info.h Common/loggers.h Common/network_config.h
@@ -20,6 +20,9 @@ NM/ss_handler.o: NM/ss_handler.c NM/ss_handler.h Common/requests.h Common/respon
 
 NM/request_handlers/create_request_handler.o: NM/request_handlers/create_request_handler.h NM/request_handlers/create_request_handler.c Common/responses.h Common/loggers.h Common/path_utils.h NM/ss_info.h
 	$(CC) $(CFLAGS) -c NM/request_handlers/create_request_handler.c -o $@
+
+NM/request_handlers/delete_request_handler.o: NM/request_handlers/delete_request_handler.h NM/request_handlers/delete_request_handler.c NM/ss_info.h Common/responses.h
+	$(CC) $(CFLAGS) -c NM/request_handlers/delete_request_handler.c -o $@
 
 NM/ss_info.o: NM/ss_info.c NM/ss_info.h NM/trie.h Common/network_config.h
 	$(CC) $(CFLAGS) -c NM/ss_info.c -o $@
@@ -42,13 +45,13 @@ Common/loggers.o: Common/loggers.c Common/loggers.h Common/colors.h Common/respo
 Common/path_utils.o: Common/path_utils.c Common/path_utils.h
 	$(CC) $(CFLAGS) -c Common/path_utils.c -o $@
 
-ss.out: SS/main.o SS/initialize.o Common/requests.o Common/responses.o Common/network_utils.o  SS/client_handler.o SS/nm_handler.o Common/loggers.o
+ss.out: SS/main.o SS/initialize.o Common/requests.o Common/responses.o Common/network_utils.o  SS/client_handler.o SS/nm_handler.o Common/loggers.o SS/create.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 SS/main.o: SS/main.c SS/initialize.h SS/nm_handler.h SS/client_handler.h  
 	$(CC) $(CFLAGS) -c SS/main.c -o $@
 
-SS/nm_handler.o: SS/nm_handler.c SS/nm_handler.h Common/network_config.h Common/loggers.h Common/requests.h Common/responses.h
+SS/nm_handler.o: SS/nm_handler.c SS/nm_handler.h Common/network_config.h Common/loggers.h Common/requests.h Common/responses.h SS/create.h
 	$(CC) $(CFLAGS) -c SS/nm_handler.c -o $@
 
 SS/client_handler.o: SS/client_handler.c SS/client_handler.h Common/loggers.h Common/network_config.h
