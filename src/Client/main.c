@@ -30,11 +30,18 @@ int main()
         {
             delete_();
         }
+<<<<<<< HEAD
         // for reading files
         else if (strcmp(command, "READ\n") == 0)
         {
             read_();
         }
+=======
+        // for reading files 
+        // if ( strcmp (command, "READ\n") == 0){
+        //     read();
+        // }
+>>>>>>> 865e7fa (added while loop in write in SS)
         // // for writing files
         // if ( strcmp (command, "WRITE\n") == 0){
         //     write();

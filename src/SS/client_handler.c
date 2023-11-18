@@ -25,7 +25,6 @@ typedef struct ClientHandlerArguments
     socklen_t client_address_size;
 } ClientHandlerArguments;
 
-
 int read_file_and_send_data(const char *path, int client_socket)
 {
     FILE *file = fopen(path, "r");
@@ -93,7 +92,6 @@ int recursive_path_finderr(char *path, char *prefix, char list_of_paths[][MAX_PA
     closedir(dir);
 }
 
-
 int copy_file(const char *path, const char *destination)
 {
     FILE *file = fopen(path, "rb");
@@ -109,7 +107,7 @@ int copy_file(const char *path, const char *destination)
     {
         // Attempt to create the destination file
         destination_file = fopen(destination, "wb");
-        
+
         if (destination_file == NULL)
         {
             // Handle error appropriately, log, etc.
@@ -222,21 +220,30 @@ void *client_handler(void *arguments)
         send_response(client_ss_handler_arguments->socket, response);
 
         char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1];
-
-        if (receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer) == -1)
+        while (1)
         {
-            log_errno_error("Error while receiving data from client:\n");
-            response = INTERNAL_ERROR_RESPONSE;
-        }
-        else
-        {
-            if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
+            int k = receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer);
+            if (k == -1)
             {
+                log_errno_error("Error while receiving data from client:\n");
                 response = INTERNAL_ERROR_RESPONSE;
+                break;
+            }
+            else if (k == 0)
+            {
+                break;
             }
             else
             {
-                response = OK_RESPONSE;
+                if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
+                {
+                    response = INTERNAL_ERROR_RESPONSE;
+                    break;
+                }
+                else
+                {
+                    response = OK_START_STREAM_RESPONSE;
+                }
             }
         }
         send_response(client_ss_handler_arguments->socket, response);
