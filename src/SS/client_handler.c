@@ -220,21 +220,30 @@ void *client_handler(void *arguments)
         send_response(client_ss_handler_arguments->socket, response);
 
         char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1];
-
-        if (receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer) == -1)
+        while (1)
         {
-            log_errno_error("Error while receiving data from client: %s\n");
-            response = INTERNAL_ERROR_RESPONSE;
-        }
-        else
-        {
-            if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
+            int k = receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer);
+            if (k == -1)
             {
+                log_errno_error("Error while receiving data from client:\n");
                 response = INTERNAL_ERROR_RESPONSE;
+                break;
+            }
+            else if (k == 0)
+            {
+                break;
             }
             else
             {
-                response = OK_RESPONSE;
+                if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
+                {
+                    response = INTERNAL_ERROR_RESPONSE;
+                    break;
+                }
+                else
+                {
+                    response = OK_START_STREAM_RESPONSE;
+                }
             }
         }
         send_response(client_ss_handler_arguments->socket, response);
