@@ -59,6 +59,7 @@ void *nm_handler(void *arguments)
         log_info("DELETE_REQUEST", &nm_arguments->nm_address);
         if (delete_file_or_folder(nm_arguments->ssid, request_buffer.request_content.delete_request_data.path) == -1)
         {
+            log_errno_error("Couldn't delete: %s\n");
             response = INTERNAL_ERROR_RESPONSE;
         }
         else

@@ -23,7 +23,7 @@ int delete_folder_contents(const char *system_path)
     {
         if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
         {
-            char entry_path[PATH_MAX];
+            char entry_path[MAX_PATH_LENGTH];
             snprintf(entry_path, sizeof(entry_path), "%s/%s", system_path, entry->d_name);
             if (_delete_file_or_folder(entry_path) != 0)
             {
