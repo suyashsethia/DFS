@@ -4,7 +4,7 @@
 #include "create.h"
 #include "delete.h"
 #include "read.h"
-// #include "write.h"
+#include "write.h"
 // #include "copy.h"
 // #include "list.h"
 // #include "get.h"
@@ -35,10 +35,11 @@ int main()
         {
             read_();
         }
-        // // for writing files
-        // if ( strcmp (command, "WRITE\n") == 0){
-        //     write();
-        // }
+        // for writing files
+        if (strcmp(command, "WRITE\n") == 0)
+        {
+            write_();
+        }
         // if (strcmp(command, "COPY\n") == 0) {
         //     copy();
         // }

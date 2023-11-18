@@ -57,6 +57,11 @@ void *client_handler(void *client_handler_arguments_raw)
         log_info("READ_REQUEST", &client_handler_arguments->client_address);
         read_request_handler(client_handler_arguments->socket, &client_handler_arguments->client_address, request_buffer.request_content.read_request_data.path);
         break;
+    case WRITE_REQUEST:
+        log_info("WRITE_REQUEST", &client_handler_arguments->client_address);
+        // same as read, redirect
+        read_request_handler(client_handler_arguments->socket, &client_handler_arguments->client_address, request_buffer.request_content.write_request_data.path);
+        break;
     default:
         log_info("INVALID_REQUEST_RESPONSE", &client_handler_arguments->client_address);
         send_response(client_handler_arguments->socket, INVALID_REQUEST_RESPONSE);

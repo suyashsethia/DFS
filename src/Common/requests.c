@@ -30,6 +30,13 @@ int send_read_request(int socket, const char *path)
     return send_request(socket, &request);
 }
 
+int send_write_request(int socket, const char *path)
+{
+    Request request = {.request_type = WRITE_REQUEST};
+    strncpy(request.request_content.write_request_data.path, path, sizeof(request.request_content.write_request_data.path));
+    return send_request(socket, &request);
+}
+
 int send_create_request(int socket, const char *file_path, bool is_folder)
 {
 

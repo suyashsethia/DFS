@@ -133,20 +133,22 @@ int copy_file(const char *path, const char *destination)
 
     return 0;
 }
-int write_file(const char *path, char *data_buffer)
+int write_file(int ssid, const char *filepath, char *data_buffer)
 {
+    char path[MAX_PATH_LENGTH + 1];
+    snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
+
     FILE *file = fopen(path, "a");
     if (file == NULL)
     {
-        log_errno_error("Error while opening file:\n");
-        // fclose(file);
+        log_errno_error("Error while opening file: %s\n");
         return -1;
     }
     // write the data buffer to the file by concatinating it on the end of the file
     // Append the data buffer to the end of the file
     if (fprintf(file, "%s", data_buffer) < 0)
     {
-        log_errno_error("Error while writing to file");
+        log_errno_error("Error while writing to file: %s\n");
         fclose(file); // Close the file before returning in case of an error
         return -1;
     }
@@ -154,8 +156,10 @@ int write_file(const char *path, char *data_buffer)
     fclose(file);
     return 0;
 }
-int check_file_exists(char *path)
+int check_file_exists(int ssid, char *filepath)
 {
+    char path[MAX_PATH_LENGTH + 1];
+    snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
     FILE *file = fopen(path, "r");
     if (file == NULL)
     {
@@ -209,23 +213,23 @@ void *client_handler(void *arguments)
 
     case WRITE_REQUEST:
         log_info("WRITE_REQUEST", &client_ss_handler_arguments->client_address);
-        if (check_file_exists(request_buffer.request_content.write_request_data.path) == -1)
+        if (check_file_exists(client_ss_handler_arguments->ssid, request_buffer.request_content.write_request_data.path) == -1)
         {
             response = NOT_FOUND_RESPONSE;
         }
         else
         {
-            response = OK_RESPONSE;
+            response = OK_START_STREAM_RESPONSE;
         }
         send_response(client_ss_handler_arguments->socket, response);
 
-        char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1];
         while (1)
         {
+            char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1] = {0};
             int k = receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer);
             if (k == -1)
             {
-                log_errno_error("Error while receiving data from client:\n");
+                log_errno_error("Error while receiving data from client: %s\n");
                 response = INTERNAL_ERROR_RESPONSE;
                 break;
             }
@@ -235,14 +239,14 @@ void *client_handler(void *arguments)
             }
             else
             {
-                if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
+                if (write_file(client_ss_handler_arguments->ssid, request_buffer.request_content.write_request_data.path, buffer) == -1)
                 {
                     response = INTERNAL_ERROR_RESPONSE;
                     break;
                 }
                 else
                 {
-                    response = OK_START_STREAM_RESPONSE;
+                    response = OK_RESPONSE;
                 }
             }
         }
@@ -251,7 +255,7 @@ void *client_handler(void *arguments)
 
     case COPY_REQUEST:
         log_info("COPY_REQUEST", &client_ss_handler_arguments->client_address);
-        if (check_file_exists(request_buffer.request_content.copy_request_data.source_path) == -1)
+        if (check_file_exists(client_ss_handler_arguments->ssid, request_buffer.request_content.copy_request_data.source_path) == -1)
         {
             response = NOT_FOUND_RESPONSE;
         }
