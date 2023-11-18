@@ -68,28 +68,43 @@ int recursive_path_finder(char *path, char *prefix, char list_of_paths[][MAX_PAT
     closedir(dir);
 }
 
-int read_file_and_send_data(const char *path, int client_socket)
+
+int copy_file(const char *path, const char *destination)
 {
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
     if (file == NULL)
     {
-        log_errno_error("Error while opening file:\n");
+        // Handle error appropriately, log, etc.
+        perror("Error while opening source file");
         return -1;
     }
-    fseek(file, 0, SEEK_SET);
 
-    char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE];
-    size_t bytes_read;
-    while ((bytes_read = fread(buffer, 1, MAX_STREAMING_RESPONSE_PAYLOAD_SIZE, file)) > 0)
+    FILE *destination_file = fopen(destination, "wb");
+    if (destination_file == NULL)
     {
-        if (send_streaming_response_payload(client_socket, buffer, bytes_read) == -1)
+        // Attempt to create the destination file
+        destination_file = fopen(destination, "wb");
+        
+        if (destination_file == NULL)
         {
-            log_errno_error("Error while sending data to client:\n");
+            // Handle error appropriately, log, etc.
+            perror("Error while opening/creating destination file");
+            fclose(file);
             return -1;
         }
     }
-    end_streaming_response_payload(client_socket);
+
+    char buffer[MAX_FILE_SIZE];
+    size_t bytes_read;
+
+    while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0)
+    {
+        fwrite(buffer, 1, bytes_read, destination_file);
+    }
+
     fclose(file);
+    fclose(destination_file);
+
     return 0;
 }
 int write_file(const char *path, char *data_buffer)
@@ -131,7 +146,14 @@ int get_info_send_info(const char *path, int client_socket)
         log_errno_error("Error while getting file info:\n");
         return -1;
     }
+
     // send the file_stat
+
+    if (send(client_socket, &file_stat, sizeof(file_stat), 0) == -1)
+    {
+        log_errno_error("Error while sending file info:\n");
+        return -1;
+    }
 
     return 0;
 }
@@ -203,13 +225,12 @@ void *client_handler(void *arguments)
         }
         else
         {
-            if (read_file_and_send_data(request_buffer.request_content.copy_request_data.source_path, client_ss_handler_arguments->socket) == -1)
+            if (copy_file(request_buffer.request_content.copy_request_data.source_path, request_buffer.request_content.copy_request_data.destination_path) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
             else
             {
-
                 response = OK_RESPONSE;
             }
         }
@@ -224,6 +245,7 @@ void *client_handler(void *arguments)
         {
             response = OK_RESPONSE;
         }
+
         send_response(client_ss_handler_arguments->socket, response);
         break;
     case GET_LIST:
@@ -238,7 +260,12 @@ void *client_handler(void *arguments)
         {
             response = OK_RESPONSE;
         }
-        //send the data to the client list of paths , paths_count
+        // send the data to the client list of paths , paths_count
+        if (send(client_ss_handler_arguments->socket, &paths_count, sizeof(paths_count), 0) == -1)
+        {
+            log_errno_error("Error while sending paths_count:\n");
+            return NULL;
+        }
         send_response(client_ss_handler_arguments->socket, response);
 
     default:

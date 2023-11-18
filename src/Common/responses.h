@@ -13,6 +13,7 @@
 #define OK_START_STREAM_RESPONSE 'c'
 
 #define MAX_STREAMING_RESPONSE_PAYLOAD_SIZE 1024UL
+#define MAX_FILE_SIZE 1024UL * 1024UL // 1MB
 
 int send_response(int socket, char response_type);
 int receive_response(int socket, char *response_buffer);
