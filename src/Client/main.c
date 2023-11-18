@@ -3,7 +3,7 @@
 
 #include "create.h"
 #include "delete.h"
-// #include "read.h"
+#include "read.h"
 // #include "write.h"
 // #include "copy.h"
 // #include "list.h"
@@ -25,6 +25,9 @@ int main()
         }
         if (strcmp(command, "DELETE\n") == 0) {
             delete_();
+        }
+        if(strcmp(command, "READ\n") == 0) {
+            read();
         }
         // for reading files 
         // if ( strcmp (command, "READ\n") == 0){

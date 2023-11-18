@@ -2,7 +2,8 @@
   "files.associations": {
     "network_utils.h": "c",
     "stdbool.h": "c",
-    "inet.h": "c"
+    "inet.h": "c",
+    "stdint.h": "c"
   },
   "makefile.makefilePath": "Makefile"
 }

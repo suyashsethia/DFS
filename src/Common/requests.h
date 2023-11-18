@@ -9,6 +9,8 @@
 #define SS_REGISTER_REQUEST '2'
 #define DELETE_REQUEST '3'
 #define READ_REQUEST '4'
+#define WRITE_REQUEST '5'
+#define COPY_REQUEST '6'
 
 #include <stdbool.h>
 #include <stdint.h>

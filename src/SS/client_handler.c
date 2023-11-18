@@ -1,10 +1,22 @@
-#include <arpa/inet.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <dirent.h>
 #include <pthread.h>
 
 #include "client_handler.h"
 #include "../Common/loggers.h"
 #include "../Common/network_config.h"
+#include "../Common/requests.h"
+#include "../Common/responses.h"
 
 typedef struct ClientHandlerArguments
 {
@@ -13,8 +25,66 @@ typedef struct ClientHandlerArguments
     socklen_t client_address_size;
 } ClientHandlerArguments;
 
+int read_file_and_send_data(const char *path, u_int64_t offset, int client_socket)
+{
+    FILE *file = fopen(path, "r");
+    if (file == NULL)
+    {
+        log_errno_error("Error while opening file:\n");
+        return -1;
+    }
+    fseek(file, offset, SEEK_SET);
+
+    char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE];
+    size_t bytes_read;
+    while ((bytes_read = fread(buffer, 1, MAX_STREAMING_RESPONSE_PAYLOAD_SIZE, file)) > 0)
+    {
+        if (send_streaming_response_payload(client_socket, buffer, bytes_read) == -1)
+        {
+            log_errno_error("Error while sending data to client:\n");
+            return -1;
+        }
+    }
+    end_streaming_response_payload(client_socket);
+    fclose(file);
+    return 0;
+}
+
 void *client_handler(void *arguments)
 {
+    ClientHandlerArguments *client_ss_handler_arguments = (ClientHandlerArguments *)arguments;
+    Request request_buffer;
+    if (receive_request(client_ss_handler_arguments->socket, &request_buffer) == -1)
+    {
+        log_errno_error("Error while receiving request from client:\n");
+        return NULL;
+    }
+    char response;
+    switch (request_buffer.request_type)
+    {
+    case READ_REQUEST:
+        log_info("READ_REQUEST", &client_ss_handler_arguments->client_address);
+        if (read_file_and_send_data(request_buffer.request_content.read_request_data.path, MAX_STREAMING_RESPONSE_PAYLOAD_SIZE, client_ss_handler_arguments->socket) == -1)
+        {
+            response = INTERNAL_ERROR_RESPONSE;
+        }
+        else
+        {
+            response = OK_RESPONSE;
+        }
+        send_response(client_ss_handler_arguments->socket, response);
+        break;
+
+    case WRITE_REQUEST:
+    case COPY_REQUEST:
+    default:
+        log_info("Invalid Request Type", &client_ss_handler_arguments->client_address);
+        response = INVALID_REQUEST_RESPONSE;
+        send_response(client_ss_handler_arguments->socket, response);
+        break;
+    }
+    free(client_ss_handler_arguments);
+    return NULL;
 }
 
 void *client_connection_acceptor(void *arguments)
