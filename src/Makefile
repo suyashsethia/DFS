@@ -81,5 +81,7 @@ Client/delete.o: Client/delete.c Client/delete.h Common/network_config.h Common/
 Client/read.o: Client/read.c Client/read.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
 	$(CC) $(CFLAGS) -c Client/read.c -o $@
 
+Client/write.o: Client/write.c Client/write.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
+	$(CC) $(CFLAGS) -c Client/write.c -o $@
 #  NOT YET ADDED 
 #  write / copy / list / get
