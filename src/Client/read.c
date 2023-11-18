@@ -67,7 +67,7 @@ void read_()
 
         log_response(response, &nm_address);
         close(connection_socket);
-        printf("ddd");
+        // printf("ddd");
         // MAKE A NEW CONNECTION TO SS
         // int ss_connection;
         int ss_connection = socket(AF_INET, SOCK_STREAM, 0);
@@ -128,5 +128,10 @@ void read_()
             log_response(response, &address_ss);
             close(ss_connection);
         }
+    }
+    else
+    {
+        log_response(response, &nm_address);
+        close(connection_socket);
     }
 }
