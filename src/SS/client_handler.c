@@ -149,6 +149,8 @@ void *client_handler(void *arguments)
     {
     case READ_REQUEST:
         log_info("READ_REQUEST", &client_ss_handler_arguments->client_address);
+        send_response(client_ss_handler_arguments->socket, OK_START_STREAM_RESPONSE);
+
         if (read_file_and_send_data(request_buffer.request_content.read_request_data.path, client_ss_handler_arguments->socket) == -1)
         {
             response = INTERNAL_ERROR_RESPONSE;
