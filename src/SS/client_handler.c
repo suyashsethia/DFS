@@ -25,7 +25,32 @@ typedef struct ClientHandlerArguments
     socklen_t client_address_size;
 } ClientHandlerArguments;
 
-int recursive_path_finder(char *path, char *prefix, char list_of_paths[][MAX_PATH_LENGTH], int *paths_count)
+
+int read_file_and_send_data(const char *path, int client_socket)
+{
+    FILE *file = fopen(path, "r");
+    if (file == NULL)
+    {
+        log_errno_error("Error while opening file:\n");
+        return -1;
+    }
+    fseek(file, 0, SEEK_SET);
+
+    char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE];
+    size_t bytes_read;
+    while ((bytes_read = fread(buffer, 1, MAX_STREAMING_RESPONSE_PAYLOAD_SIZE, file)) > 0)
+    {
+        if (send_streaming_response_payload(client_socket, buffer, bytes_read) == -1)
+        {
+            log_errno_error("Error while sending data to client:\n");
+            return -1;
+        }
+    }
+    end_streaming_response_payload(client_socket);
+    fclose(file);
+    return 0;
+}
+int recursive_path_finderr(char *path, char *prefix, char list_of_paths[][MAX_PATH_LENGTH], int *paths_count)
 {
     DIR *dir;
     struct dirent *entry;
@@ -60,7 +85,7 @@ int recursive_path_finder(char *path, char *prefix, char list_of_paths[][MAX_PAT
         if (entry->d_type == DT_DIR)
         {
             // Recursively call the function for subdirectories
-            recursive_path_finder(follow_path, path, list_of_paths, paths_count);
+            recursive_path_finderr(follow_path, path, list_of_paths, paths_count);
         }
     }
     return 0;
@@ -252,7 +277,7 @@ void *client_handler(void *arguments)
         log_info("GET_LIST", &client_ss_handler_arguments->client_address);
         char list_of_paths[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH];
         int paths_count = 0;
-        if (recursive_path_finder(request_buffer.request_content.get_list_request_data.path, "", list_of_paths, &paths_count) == -1)
+        if (recursive_path_finderr(request_buffer.request_content.get_list_request_data.path, "", list_of_paths, &paths_count) == -1)
         {
             response = INTERNAL_ERROR_RESPONSE;
         }
