@@ -20,7 +20,13 @@ int send_delete_request(int socket, const char *path)
 {
     Request request = {.request_type = DELETE_REQUEST};
     strncpy(request.request_content.delete_request_data.path, path, sizeof(request.request_content.delete_request_data.path));
-    printf("deleting %s\n", request.request_content.delete_request_data.path);
+    return send_request(socket, &request);
+}
+
+int send_read_request(int socket, const char *path)
+{
+    Request request = {.request_type = READ_REQUEST};
+    strncpy(request.request_content.read_request_data.path, path, sizeof(request.request_content.read_request_data.path));
     return send_request(socket, &request);
 }
 

@@ -4,13 +4,11 @@
 #define MAX_PATH_LENGTH 4096UL
 #define MAX_ACCESIBLE_PATHS 400
 
-#define MESSAGE_TYPE_REQUEST '0'
-#define MESSAGE_TYPE_SS_REGISTER_PAYLOAD 'S'
-
 #define CREATE_REQUEST '0'
 #define CREATE_BACKUP_REQUEST '1'
 #define SS_REGISTER_REQUEST '2'
 #define DELETE_REQUEST '3'
+#define READ_REQUEST '4'
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -33,6 +31,11 @@ typedef struct DeleteRequestData
     char path[MAX_PATH_LENGTH];
 } DeleteRequestData;
 
+typedef struct ReadRequestData
+{
+    char path[MAX_PATH_LENGTH];
+} ReadRequestData;
+
 typedef struct SSRegisterData
 {
     int ss_id;
@@ -48,6 +51,7 @@ union RequestContent
     CreateBackupRequestData create_backup_request_data;
     SSRegisterData ss_register_data;
     DeleteRequestData delete_request_data;
+    ReadRequestData read_request_data;
 };
 
 typedef struct Request
@@ -66,6 +70,8 @@ int send_register_ss_request(int socket, int ss_id, struct sockaddr_in *nm_conne
                              char accessible_paths[accessible_paths_count][MAX_PATH_LENGTH]);
 
 int send_delete_request(int socket, const char *path);
+
+int send_read_request(int socket, const char *path);
 
 int receive_request(int socket, Request *request_buffer);
 

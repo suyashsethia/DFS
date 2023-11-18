@@ -10,8 +10,9 @@ int send_message(int socket, Message message)
     if (send(socket, &message.payload_size, sizeof(message.payload_size), 0) == -1)
         return -1;
 
-    if (send(socket, message.payload, message.payload_size, 0) == -1)
-        return -1;
+    if (message.payload_size != 0)
+        if (send(socket, message.payload, message.payload_size, 0) == -1)
+            return -1;
 
     return 0;
 }
