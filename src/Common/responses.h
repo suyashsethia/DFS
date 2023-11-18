@@ -1,6 +1,8 @@
 #ifndef RESPONSES_H
 #define RESPONSES_H
 
+#include <arpa/inet.h>
+
 // update loggers.c when adding responses
 #define NOT_FOUND_RESPONSE '0'
 #define INTERNAL_ERROR_RESPONSE '1'

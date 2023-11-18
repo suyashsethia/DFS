@@ -64,6 +64,12 @@ void log_response(char response, struct sockaddr_in *address)
     case ALREADY_EXISTS_RESPONSE:
         log_info("ALREADY_EXISTS_RESPONSE", address);
         break;
+    case REDIRECT_RESPONSE:
+        log_info("REDIRECT_RESPONSE", address);
+        break;
+    case OK_START_STREAM_RESPONSE:
+        log_info("OK_START_STREAM_RESPONSE", address);
+        break;
     default:
         break;
     }

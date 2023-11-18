@@ -94,3 +94,11 @@ struct sockaddr_in get_nm_connection_address(int ss_id)
     pthread_rwlock_unlock(&nm_connection_addresses_lock);
     return address;
 }
+
+struct sockaddr_in get_client_connection_address(int ss_id)
+{
+    pthread_rwlock_rdlock(&client_connection_addresses_lock);
+    struct sockaddr_in address = client_connection_addresses[ss_id];
+    pthread_rwlock_unlock(&client_connection_addresses_lock);
+    return address;
+}

@@ -34,9 +34,10 @@ int send_streaming_response_payload(int socket, char *data, uint64_t size)
 
 int end_streaming_response_payload(int socket)
 {
+    char dummy_payload = '\0';
     Message message = {.type = MESSAGE_TYPE_STREAM_END,
-                       .payload_size = 0,
-                       .payload = NULL};
+                       .payload_size = 1,
+                       .payload = &dummy_payload};
 
     return send_message(socket, message);
 }

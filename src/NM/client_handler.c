@@ -9,6 +9,7 @@
 #include "../Common/network_config.h"
 #include "request_handlers/create_request_handler.h"
 #include "request_handlers/delete_request_handler.h"
+#include "request_handlers/read_request_handler.h"
 
 typedef struct ClientHandlerArguments
 {
@@ -53,8 +54,9 @@ void *client_handler(void *client_handler_arguments_raw)
         break;
 
     case READ_REQUEST:
-        // log_info("READ_REQUEST", &client_handler_arguments->client_address);
-
+        log_info("READ_REQUEST", &client_handler_arguments->client_address);
+        read_request_handler(client_handler_arguments->socket, &client_handler_arguments->client_address, request_buffer.request_content.read_request_data.path);
+        break;
     default:
         log_info("INVALID_REQUEST_RESPONSE", &client_handler_arguments->client_address);
         send_response(client_handler_arguments->socket, INVALID_REQUEST_RESPONSE);

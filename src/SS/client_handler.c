@@ -20,18 +20,20 @@
 
 typedef struct ClientHandlerArguments
 {
+    int ssid;
     int socket;
     struct sockaddr_in client_address;
     socklen_t client_address_size;
 } ClientHandlerArguments;
 
-
-int read_file_and_send_data(const char *path, int client_socket)
+int read_file_and_send_data(int ssid, const char *filepath, int client_socket)
 {
+    char path[MAX_PATH_LENGTH + sizeof(int) + 1];
+    snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
     FILE *file = fopen(path, "r");
     if (file == NULL)
     {
-        log_errno_error("Error while opening file:\n");
+        log_errno_error("Error while opening file: %s\n");
         return -1;
     }
     fseek(file, 0, SEEK_SET);
@@ -42,7 +44,7 @@ int read_file_and_send_data(const char *path, int client_socket)
     {
         if (send_streaming_response_payload(client_socket, buffer, bytes_read) == -1)
         {
-            log_errno_error("Error while sending data to client:\n");
+            log_errno_error("Error while sending data to client: %s\n");
             return -1;
         }
     }
@@ -93,7 +95,6 @@ int recursive_path_finderr(char *path, char *prefix, char list_of_paths[][MAX_PA
     closedir(dir);
 }
 
-
 int copy_file(const char *path, const char *destination)
 {
     FILE *file = fopen(path, "rb");
@@ -109,7 +110,7 @@ int copy_file(const char *path, const char *destination)
     {
         // Attempt to create the destination file
         destination_file = fopen(destination, "wb");
-        
+
         if (destination_file == NULL)
         {
             // Handle error appropriately, log, etc.
@@ -168,7 +169,7 @@ int get_info_send_info(const char *path, int client_socket)
     struct stat file_stat;
     if (stat(path, &file_stat) == -1)
     {
-        log_errno_error("Error while getting file info:\n");
+        log_errno_error("Error while getting file info: %s\n");
         return -1;
     }
 
@@ -176,7 +177,7 @@ int get_info_send_info(const char *path, int client_socket)
 
     if (send(client_socket, &file_stat, sizeof(file_stat), 0) == -1)
     {
-        log_errno_error("Error while sending file info:\n");
+        log_errno_error("Error while sending file info: %s\n");
         return -1;
     }
 
@@ -188,7 +189,7 @@ void *client_handler(void *arguments)
     Request request_buffer;
     if (receive_request(client_ss_handler_arguments->socket, &request_buffer) == -1)
     {
-        log_errno_error("Error while receiving request from client:\n");
+        log_errno_error("Error while receiving request from client: %s\n");
         return NULL;
     }
     char response;
@@ -197,16 +198,13 @@ void *client_handler(void *arguments)
     case READ_REQUEST:
         log_info("READ_REQUEST", &client_ss_handler_arguments->client_address);
         send_response(client_ss_handler_arguments->socket, OK_START_STREAM_RESPONSE);
-
-        if (read_file_and_send_data(request_buffer.request_content.read_request_data.path, client_ss_handler_arguments->socket) == -1)
+        log_response(OK_START_STREAM_RESPONSE, &client_ss_handler_arguments->client_address);
+        if (read_file_and_send_data(client_ss_handler_arguments->ssid, request_buffer.request_content.read_request_data.path, client_ss_handler_arguments->socket) == -1)
         {
             response = INTERNAL_ERROR_RESPONSE;
+            send_response(client_ss_handler_arguments->socket, response);
         }
-        else
-        {
-            response = OK_RESPONSE;
-        }
-        send_response(client_ss_handler_arguments->socket, response);
+
         break;
 
     case WRITE_REQUEST:
@@ -225,7 +223,7 @@ void *client_handler(void *arguments)
 
         if (receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer) == -1)
         {
-            log_errno_error("Error while receiving data from client:\n");
+            log_errno_error("Error while receiving data from client: %s\n");
             response = INTERNAL_ERROR_RESPONSE;
         }
         else
@@ -335,6 +333,7 @@ void *client_connection_acceptor(void *arguments)
     while (1)
     {
         ClientHandlerArguments *client_handler_arguments = malloc(sizeof(ClientHandlerArguments));
+        client_handler_arguments->ssid = ssid;
         if (client_handler_arguments == NULL)
         {
             log_errno_error("Couldn't malloc: %s\n");

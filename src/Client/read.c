@@ -49,16 +49,15 @@ void read_()
     // RECEIVING RESPONSE WITH HAS AN ADDRESS
     char response;
     // char address[100];
-    struct sockaddr_in address_ss;
 
     if (receive_response(connection_socket, &response) == -1)
     {
         log_errno_error("Couldn't receive response: %s\n");
         return;
     }
-    printf("Received response %c\n ", response);
     if (response == REDIRECT_RESPONSE)
     {
+        struct sockaddr_in address_ss;
         if (receive_redirect_response_payload(connection_socket, &address_ss) == -1)
         {
             log_errno_error("Couldn't receive address: %s\n");
@@ -97,7 +96,7 @@ void read_()
             return;
         }
         // RECEIVING RESPONSE WITH HAS AN ADDRESS
-
+        log_response(response, &address_ss);
         if (response == OK_START_STREAM_RESPONSE)
         {
             while (1)
@@ -111,21 +110,12 @@ void read_()
                     return;
                 }
                 else if (r == 0)
-                {
                     // end
                     break;
-                }
                 else
-                {
-                    if (receive_streaming_response_payload(ss_connection, data) == -1)
-                    {
-                        log_errno_error("Couldn't receive data: %s\n");
-                        return;
-                    }
                     printf("%s", data);
-                }
             }
-            log_response(response, &address_ss);
+            printf("\n---EOF---\n");
             close(ss_connection);
         }
     }
