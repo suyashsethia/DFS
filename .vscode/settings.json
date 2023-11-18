@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "limits": "c",
+        "network_config.h": "c",
+        "loggers.h": "c"
+    }
+}

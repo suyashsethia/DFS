@@ -3,6 +3,11 @@
 
 #include "create.h"
 #include "delete.h"
+// #include "read.h"
+// #include "write.h"
+// #include "copy.h"
+// #include "list.h"
+// #include "get.h"
 
 int main()
 {
@@ -12,7 +17,7 @@ int main()
         char command[100];
         printf("ENTER THE COMMAND (all caps)\n");
         fgets(command, sizeof(command), stdin);
-        if (strcmp(command, "end\n") == 0) {
+        if (strcmp(command, "exit\n") == 0) {
             break;
         }
         if (strcmp(command, "CREATE\n") == 0) {
@@ -21,6 +26,23 @@ int main()
         if (strcmp(command, "DELETE\n") == 0) {
             delete_();
         }
+        // for reading files 
+        // if ( strcmp (command, "READ\n") == 0){
+        //     read();
+        // }
+        // // for writing files
+        // if ( strcmp (command, "WRITE\n") == 0){
+        //     write();
+        // }
+        // if (strcmp(command, "COPY\n") == 0) {
+        //     copy();
+        // }
+        // if (strcmp(command, "LIST\n") == 0) {
+        //     list();
+        // }
+        // if (strcmp(command, "GET\n") == 0) {
+        //     get();
+        // }
     }
 
     printf("Thank you, Client is closed, Happy diwali\n");

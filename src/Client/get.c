@@ -1,20 +1,20 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <arpa/inet.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 
-#include "delete.h"
+#include "get.h"
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
 #include "../Common/loggers.h"
 
 
-void delete_()
+void get()
 {
     char path[MAX_PATH_LENGTH + 1];
-    printf("Enter Path (of file/folder):");
+    printf("Enter Path :");
     if (fgets(path, sizeof(path), stdin) == NULL) {
         return;
     }
@@ -38,17 +38,39 @@ void delete_()
         log_errno_error("Couldn't connect to ss: %s\n");
         return;
     }
-    // need changes here
-    if (send_delete_request(connection_socket, path) == -1) {
-        log_errno_error("Couldn't send delete request: %s\n");
+    // SENDING GET REQUEST WITH THE PATH 
+    if (send_get_request(connection_socket, path) == -1) {
+        log_errno_error("Couldn't send get request: %s\n");
         return;
     }
-
+    // RECEIVING RESPONSE WITH HAS AN ADDRESS  
     char response;
-    if (receive_response(connection_socket, &response) == -1) {
+    char address[100];
+    if (receive_get_response(connection_socket, &response, &address) == -1) {
         log_errno_error("Couldn't receive response: %s\n");
         return;
     }
     log_response(response, &nm_address);
     close(connection_socket);
+
+    // MAKE A NEW CONNECTION TO SS
+    int ss_connection;
+
+    // SENDING GET REQUEST WITH THE PATH 
+    if (send_get_request(connection_socket, path) == -1) {
+        log_errno_error("Couldn't send get request to ss: %s\n");
+        return;
+    }
+    
+    // RECEIVING RESPONSE WITH HAS AN ADDRESS  
+    char response;
+    char get[1000];
+    if (receive_get_response(connection_socket, &response, &get) == -1) {
+        log_errno_error("Couldn't receive response to ss: %s\n");
+        return;
+    }
+    // printing the data
+    printf("%s\n", get);
+    log_response(response,&address );
+    close(ss_connection);
 }

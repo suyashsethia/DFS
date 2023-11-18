@@ -1,20 +1,20 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <arpa/inet.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 
-#include "delete.h"
+#include "read.h"
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
 #include "../Common/loggers.h"
 
 
-void delete_()
+void read()
 {
     char path[MAX_PATH_LENGTH + 1];
-    printf("Enter Path (of file/folder):");
+    printf("Enter Path (to read file):");
     if (fgets(path, sizeof(path), stdin) == NULL) {
         return;
     }
@@ -38,17 +38,37 @@ void delete_()
         log_errno_error("Couldn't connect to ss: %s\n");
         return;
     }
-    // need changes here
-    if (send_delete_request(connection_socket, path) == -1) {
-        log_errno_error("Couldn't send delete request: %s\n");
+    // SENDING READ REQUEST WITH THE PATH 
+    if (send_read_request(connection_socket, path) == -1) {
+        log_errno_error("Couldn't send read request: %s\n");
         return;
     }
-
+    // RECEIVING RESPONSE WITH HAS AN ADDRESS  
     char response;
-    if (receive_response(connection_socket, &response) == -1) {
+    char address[100];
+    if (receive_read_response(connection_socket, &response, &address) == -1) {
         log_errno_error("Couldn't receive response: %s\n");
         return;
     }
     log_response(response, &nm_address);
     close(connection_socket);
+
+    // MAKE A NEW CONNECTION TO SS
+    int ss_connection;
+    // SENDING READ REQUEST WITH THE PATH 
+    if (send_read_request(connection_socket, path) == -1) {
+        log_errno_error("Couldn't send read request to ss: %s\n");
+        return;
+    }
+    // RECEIVING RESPONSE WITH HAS AN ADDRESS  
+    char response;
+    char data[1000];
+    if (receive_read_response(connection_socket, &response, &data) == -1) {
+        log_errno_error("Couldn't receive response to ss: %s\n");
+        return;
+    }
+    // printing the data
+    printf("%s\n", data);
+    log_response(response,&address );
+    close(ss_connection);
 }
