@@ -25,7 +25,7 @@ typedef struct ClientHandlerArguments
     socklen_t client_address_size;
 } ClientHandlerArguments;
 
-int read_file_and_send_data(const char *path, u_int64_t offset, int client_socket)
+int read_file_and_send_data(const char *path, int client_socket)
 {
     FILE *file = fopen(path, "r");
     if (file == NULL)
@@ -33,7 +33,7 @@ int read_file_and_send_data(const char *path, u_int64_t offset, int client_socke
         log_errno_error("Error while opening file:\n");
         return -1;
     }
-    fseek(file, offset, SEEK_SET);
+    fseek(file, 0, SEEK_SET);
 
     char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE];
     size_t bytes_read;
@@ -64,7 +64,7 @@ void *client_handler(void *arguments)
     {
     case READ_REQUEST:
         log_info("READ_REQUEST", &client_ss_handler_arguments->client_address);
-        if (read_file_and_send_data(request_buffer.request_content.read_request_data.path, MAX_STREAMING_RESPONSE_PAYLOAD_SIZE, client_ss_handler_arguments->socket) == -1)
+        if (read_file_and_send_data(request_buffer.request_content.read_request_data.path, client_ss_handler_arguments->socket) == -1)
         {
             response = INTERNAL_ERROR_RESPONSE;
         }
