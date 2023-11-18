@@ -25,6 +25,49 @@ typedef struct ClientHandlerArguments
     socklen_t client_address_size;
 } ClientHandlerArguments;
 
+int recursive_path_finder(char *path, char *prefix, char list_of_paths[][MAX_PATH_LENGTH], int *paths_count)
+{
+    DIR *dir;
+    struct dirent *entry;
+
+    // Open the directory
+    dir = opendir(path);
+    if (dir == NULL)
+    {
+        log_errno_error("Unable to open directory: %s\n");
+        // perror("Unable to open directory");
+        return -1;
+    }
+
+    // Read directory entries
+    while ((entry = readdir(dir)) != NULL)
+    {
+        // Ignore "." and ".."
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+        {
+            continue;
+        }
+
+        // Construct the full path
+        char *path = list_of_paths[(*paths_count)++];
+        char follow_path[MAX_PATH_LENGTH];
+        snprintf(follow_path, MAX_PATH_LENGTH, "%s/%s", path, entry->d_name);
+        if (*prefix != '\0')
+            snprintf(path, MAX_PATH_LENGTH, "%s/%s", prefix, entry->d_name);
+        else
+            snprintf(path, MAX_PATH_LENGTH, "%s", entry->d_name);
+
+        if (entry->d_type == DT_DIR)
+        {
+            // Recursively call the function for subdirectories
+            recursive_path_finder(follow_path, path, list_of_paths, paths_count);
+        }
+    }
+    return 0;
+    // Close the directory
+    closedir(dir);
+}
+
 int read_file_and_send_data(const char *path, int client_socket)
 {
     FILE *file = fopen(path, "r");
@@ -60,9 +103,10 @@ int write_file(const char *path, char *data_buffer)
     }
     // write the data buffer to the file by concatinating it on the end of the file
     // Append the data buffer to the end of the file
-    if (fprintf(file, "%s", data_buffer) < 0) {
+    if (fprintf(file, "%s", data_buffer) < 0)
+    {
         log_errno_error("Error while writing to file");
-        fclose(file);  // Close the file before returning in case of an error
+        fclose(file); // Close the file before returning in case of an error
         return -1;
     }
 
@@ -87,7 +131,7 @@ int get_info_send_info(const char *path, int client_socket)
         log_errno_error("Error while getting file info:\n");
         return -1;
     }
-    //send the file_stat
+    // send the file_stat
 
     return 0;
 }
@@ -128,22 +172,22 @@ void *client_handler(void *arguments)
         }
         send_response(client_ss_handler_arguments->socket, response);
 
-        char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE+1];
-        
-        if(receive_streaming_response_payload(client_ss_handler_arguments->socket ,buffer)==-1)
+        char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1];
+
+        if (receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer) == -1)
         {
             log_errno_error("Error while receiving data from client:\n");
             response = INTERNAL_ERROR_RESPONSE;
         }
         else
         {
-            if(write_file(request_buffer.request_content.write_request_data.path, buffer)==-1)
+            if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
             else
             {
-            response = OK_RESPONSE;
+                response = OK_RESPONSE;
             }
         }
         send_response(client_ss_handler_arguments->socket, response);
@@ -157,19 +201,20 @@ void *client_handler(void *arguments)
         }
         else
         {
-            if(read_file_and_send_data(request_buffer.request_content.copy_request_data.source_path, client_ss_handler_arguments->socket)==-1)
+            if (read_file_and_send_data(request_buffer.request_content.copy_request_data.source_path, client_ss_handler_arguments->socket) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
             else
             {
+
                 response = OK_RESPONSE;
             }
         }
         break;
     case FILE_INFO:
         log_info("FILE_INFO", &client_ss_handler_arguments->client_address);
-        if(get_info_send_info(request_buffer.request_content.file_info_request_data.path, client_ss_handler_arguments->socket)==-1)
+        if (get_info_send_info(request_buffer.request_content.file_info_request_data.path, client_ss_handler_arguments->socket) == -1)
         {
             response = INTERNAL_ERROR_RESPONSE;
         }
@@ -179,6 +224,21 @@ void *client_handler(void *arguments)
         }
         send_response(client_ss_handler_arguments->socket, response);
         break;
+    case GET_LIST:
+        log_info("GET_LIST", &client_ss_handler_arguments->client_address);
+        char list_of_paths[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH];
+        int paths_count = 0;
+        if (recursive_path_finder(request_buffer.request_content.get_list_request_data.path, "", list_of_paths, &paths_count) == -1)
+        {
+            response = INTERNAL_ERROR_RESPONSE;
+        }
+        else
+        {
+            response = OK_RESPONSE;
+        }
+        //send the data to the client list of paths , paths_count
+        send_response(client_ss_handler_arguments->socket, response);
+
     default:
         log_info("Invalid Request Type", &client_ss_handler_arguments->client_address);
         response = INVALID_REQUEST_RESPONSE;

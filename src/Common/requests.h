@@ -12,6 +12,7 @@
 #define WRITE_REQUEST '5'
 #define COPY_REQUEST '6'
 #define FILE_INFO '7'
+#define GET_LIST '8'
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -63,6 +64,11 @@ typedef struct WriteRequestData
 {
     char path[MAX_PATH_LENGTH];
 } WriteRequestData;
+
+typedef struct GetListRequestData
+{
+    char path[MAX_PATH_LENGTH];
+} GetListRequestData;
 union RequestContent
 {
     CreateRequestData create_request_data;
@@ -73,6 +79,7 @@ union RequestContent
     WriteRequestData write_request_data;
     CopyRequestData copy_request_data;
     FileInfoRequestData file_info_request_data;
+    GetListRequestData get_list_request_data;
 };
 
 typedef struct Request
