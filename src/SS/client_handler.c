@@ -187,6 +187,20 @@ int get_info_send_info(const char *path, int client_socket)
 
     return 0;
 }
+int is_directory(const char *path)
+{
+    struct stat file_stat;
+
+    if (stat(path, &file_stat) == 0)
+    {
+        return S_ISDIR(file_stat.st_mode) ? -1 : 0;
+    }
+    else
+    {
+        perror("Error getting file/directory information");
+        return -1; // Return -1 on error
+    }
+}
 void *client_handler(void *arguments)
 {
     ClientHandlerArguments *client_ss_handler_arguments = (ClientHandlerArguments *)arguments;
@@ -201,6 +215,13 @@ void *client_handler(void *arguments)
     {
     case READ_REQUEST:
         log_info("READ_REQUEST", &client_ss_handler_arguments->client_address);
+        if (is_directory(request_buffer.request_content.read_request_data.path) == -1)
+        {
+            response = NOT_FOUND_RESPONSE;
+            send_response(client_ss_handler_arguments->socket, response);
+            return;
+        }
+
         send_response(client_ss_handler_arguments->socket, OK_START_STREAM_RESPONSE);
         log_response(OK_START_STREAM_RESPONSE, &client_ss_handler_arguments->client_address);
         if (read_file_and_send_data(client_ss_handler_arguments->ssid, request_buffer.request_content.read_request_data.path, client_ss_handler_arguments->socket) == -1)
