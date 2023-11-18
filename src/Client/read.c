@@ -10,65 +10,123 @@
 #include "../Common/responses.h"
 #include "../Common/loggers.h"
 
-
-void read()
+void read_()
 {
     char path[MAX_PATH_LENGTH + 1];
-    printf("Enter Path (to read file):");
-    if (fgets(path, sizeof(path), stdin) == NULL) {
+    printf("Enter Path (to read file): ");
+    if (fgets(path, sizeof(path), stdin) == NULL)
+    {
         return;
     }
     size_t path_size = strlen(path);
     path[path_size - 1] = '\0'; // set newline to null
 
     struct sockaddr_in nm_address = {
-        .sin_family=AF_INET,
-        .sin_port=htons(NM_CLIENT_HANDLER_SERVER_PORT),
-        .sin_addr={
-            .s_addr=inet_addr(NM_CLIENT_HANDLER_SERVER_IP),
-        }
-    };
+        .sin_family = AF_INET,
+        .sin_port = htons(NM_CLIENT_HANDLER_SERVER_PORT),
+        .sin_addr = {
+            .s_addr = inet_addr(NM_CLIENT_HANDLER_SERVER_IP),
+        }};
     int connection_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connection_socket == -1) {
+    if (connection_socket == -1)
+    {
         log_errno_error("Couldn't create socket: %s\n");
         return;
     }
 
-    if (connect(connection_socket, (struct sockaddr *) &nm_address, sizeof(nm_address)) == -1) {
-        log_errno_error("Couldn't connect to ss: %s\n");
+    if (connect(connection_socket, (struct sockaddr *)&nm_address, sizeof(nm_address)) == -1)
+    {
+        log_errno_error("Couldn't connect to nm: %s\n");
         return;
     }
-    // SENDING READ REQUEST WITH THE PATH 
-    if (send_read_request(connection_socket, path) == -1) {
+    // SENDING READ REQUEST WITH THE PATH
+    if (send_read_request(connection_socket, path) == -1)
+    {
         log_errno_error("Couldn't send read request: %s\n");
         return;
     }
-    // RECEIVING RESPONSE WITH HAS AN ADDRESS  
+    // printf("Sent read request\n");
+    // RECEIVING RESPONSE WITH HAS AN ADDRESS
     char response;
-    char address[100];
-    if (receive_read_response(connection_socket, &response, &address) == -1) {
+    // char address[100];
+    struct sockaddr_in address_ss;
+
+    if (receive_response(connection_socket, &response) == -1)
+    {
         log_errno_error("Couldn't receive response: %s\n");
         return;
     }
-    log_response(response, &nm_address);
-    close(connection_socket);
+    printf("Received response %c\n ", response);
+    if (response == REDIRECT_RESPONSE)
+    {
+        if (receive_redirect_response_payload(connection_socket, &address_ss) == -1)
+        {
+            log_errno_error("Couldn't receive address: %s\n");
+            return;
+        }
 
-    // MAKE A NEW CONNECTION TO SS
-    int ss_connection;
-    // SENDING READ REQUEST WITH THE PATH 
-    if (send_read_request(connection_socket, path) == -1) {
-        log_errno_error("Couldn't send read request to ss: %s\n");
-        return;
+        log_response(response, &nm_address);
+        close(connection_socket);
+        printf("ddd");
+        // MAKE A NEW CONNECTION TO SS
+        // int ss_connection;
+        int ss_connection = socket(AF_INET, SOCK_STREAM, 0);
+        if (ss_connection == -1)
+        {
+            log_errno_error("Couldn't create socket: %s\n");
+            return;
+        }
+
+        if (connect(connection_socket, (struct sockaddr *)&address_ss, sizeof(address_ss)) == -1)
+        {
+            log_errno_error("Couldn't connect to ss: %s\n");
+            return;
+        }
+
+        // SENDING READ REQUEST WITH THE PATH
+        if (send_read_request(ss_connection, path) == -1)
+        {
+            log_errno_error("Couldn't send read request: %s\n");
+            return;
+        }
+
+        char response;
+        if (receive_response(ss_connection, &response) == -1)
+        {
+            log_errno_error("Couldn't receive response: %s\n");
+            return;
+        }
+        // RECEIVING RESPONSE WITH HAS AN ADDRESS
+
+        if (response == OK_START_STREAM_RESPONSE)
+        {
+            while (1)
+            {
+                /* Ensure data_buffer has atleast MAX_STREAMING_RESPONSE_PAYLOAD_SIZE and is memset to 0 */
+                char data[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE] = {0};
+                int r = receive_streaming_response_payload(ss_connection, data);
+                if (r == -1)
+                {
+                    log_errno_error("Couldn't receive data: %s\n");
+                    return;
+                }
+                else if (r == 0)
+                {
+                    // end
+                    break;
+                }
+                else
+                {
+                    if (receive_streaming_response_payload(ss_connection, data) == -1)
+                    {
+                        log_errno_error("Couldn't receive data: %s\n");
+                        return;
+                    }
+                    printf("%s", data);
+                }
+            }
+            log_response(response, &address_ss);
+            close(ss_connection);
+        }
     }
-    // RECEIVING RESPONSE WITH HAS AN ADDRESS  
-    char response;
-    char data[1000];
-    if (receive_read_response(connection_socket, &response, &data) == -1) {
-        log_errno_error("Couldn't receive response to ss: %s\n");
-        return;
-    }
-    // printing the data
-    printf("%s\n", data);
-    log_response(response,&address );
-    close(ss_connection);
 }

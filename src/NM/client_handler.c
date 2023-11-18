@@ -52,6 +52,9 @@ void *client_handler(void *client_handler_arguments_raw)
         }
         break;
 
+    case READ_REQUEST:
+        // log_info("READ_REQUEST", &client_handler_arguments->client_address);
+
     default:
         log_info("INVALID_REQUEST_RESPONSE", &client_handler_arguments->client_address);
         send_response(client_handler_arguments->socket, INVALID_REQUEST_RESPONSE);

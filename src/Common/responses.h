@@ -18,8 +18,8 @@
 int send_response(int socket, char response_type);
 int receive_response(int socket, char *response_buffer);
 
-int send_redirect_response_payload(int socket, struct sockaddr_in *address); // from nm to client
-int receive_redirect_response_payload(int socket, struct sockaddr_in *address_buffer); 
+int send_redirect_response_payload(int socket, struct sockaddr_in *address);           // from nm to client
+int receive_redirect_response_payload(int socket, struct sockaddr_in *address_buffer); // from client to nm
 
 /* Send upto MAX_STREAMING_RESPONSE_PAYLOAD_SIZE */
 int send_streaming_response_payload(int socket, char *data, uint64_t size);

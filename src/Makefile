@@ -66,7 +66,7 @@ SS/create.o: SS/create.c SS/create.h Common/requests.h
 SS/delete.o: SS/delete.c SS/delete.h Common/requests.h
 	$(CC) $(CFLAGS) -c SS/delete.c -o $@
 
-client.out: Client/main.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o Client/delete.o
+client.out: Client/main.o Client/read.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o Client/delete.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 Client/main.o: Client/main.c  Client/create.h Client/delete.h
@@ -78,5 +78,8 @@ Client/create.o: Client/create.c Client/create.h Common/network_config.h Common/
 Client/delete.o: Client/delete.c Client/delete.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
 	$(CC) $(CFLAGS) -c Client/delete.c -o $@
 
+Client/read.o: Client/read.c Client/read.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
+	$(CC) $(CFLAGS) -c Client/read.c -o $@
+
 #  NOT YET ADDED 
-# read / write / copy / list / get
+#  write / copy / list / get
