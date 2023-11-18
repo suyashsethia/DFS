@@ -26,20 +26,17 @@ int main()
         if (strcmp(command, "DELETE\n") == 0) {
             delete_();
         }
-        if(strcmp(command, "READ\n") == 0) {
+        // for reading files 
+        if ( strcmp (command, "READ\n") == 0){
             read();
         }
-        // for reading files 
-        // if ( strcmp (command, "READ\n") == 0){
-        //     read();
-        // }
         // // for writing files
-        // if ( strcmp (command, "WRITE\n") == 0){
-        //     write();
-        // }
-        // if (strcmp(command, "COPY\n") == 0) {
-        //     copy();
-        // }
+        if ( strcmp (command, "WRITE\n") == 0){
+            write();
+        }
+        if (strcmp(command, "COPY\n") == 0) {
+            copy();
+        }
         // if (strcmp(command, "LIST\n") == 0) {
         //     list();
         // }

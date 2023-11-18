@@ -11,10 +11,13 @@
 #define READ_REQUEST '4'
 #define WRITE_REQUEST '5'
 #define COPY_REQUEST '6'
+#define FILE_INFO '7'
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <arpa/inet.h>
+
+#include "../Common/responses.h"
 
 typedef struct CreateRequestData
 {
@@ -47,6 +50,19 @@ typedef struct SSRegisterData
     char **accessible_paths;
 } SSRegisterData;
 
+typedef struct CopyRequestData
+{
+    char source_path[MAX_PATH_LENGTH];
+    char destination_path[MAX_PATH_LENGTH];
+} CopyRequestData;
+typedef struct FileInfoRequestData
+{
+    char path[MAX_PATH_LENGTH];
+} FileInfoRequestData;
+typedef struct WriteRequestData
+{
+    char path[MAX_PATH_LENGTH];
+} WriteRequestData;
 union RequestContent
 {
     CreateRequestData create_request_data;
@@ -54,6 +70,9 @@ union RequestContent
     SSRegisterData ss_register_data;
     DeleteRequestData delete_request_data;
     ReadRequestData read_request_data;
+    WriteRequestData write_request_data;
+    CopyRequestData copy_request_data;
+    FileInfoRequestData file_info_request_data;
 };
 
 typedef struct Request
