@@ -24,6 +24,8 @@
 #include "create.h"
 #include "delete.h"
 
+char writing_file[MAX_PATH_LENGTH][MAX_ACCESIBLE_PATHS];
+int writing_file_count =0 ;
 typedef struct ClientHandlerArguments
 {
     int ssid;
@@ -271,25 +273,14 @@ int copy_(const char *path, const char *destination, struct sockaddr_in *destina
     return 0;
 }
 
-int write_file(const char *path, char *data_buffer)
+int write_file(FILE *file , char *data_buffer)
 {
     // char path[MAX_PATH_LENGTH + 1];
     // snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
 
-    FILE *file = fopen(path, "a");
+    
 
-    if (file == NULL)
-    {
-        log_errno_error("Error while opening file: %s\n");
-        return -1;
-    }
-    if (try_lock_file(file, F_WRLCK) == -1)
-    {
-        // Handle the case when the lock cannot be obtained immediately
-        fprintf(stderr, "Another process is currently writing to the file.\n");
-        fclose(file);
-        exit(EXIT_FAILURE);
-    }
+
     // write the data buffer to the file by concatinating it on the end of the file
     // Append the data buffer to the end of the file
     if (fprintf(file, "%s", data_buffer) < 0)
@@ -298,8 +289,6 @@ int write_file(const char *path, char *data_buffer)
         fclose(file); // Close the file before returning in case of an error
         return -1;
     }
-    unlock_file(file);
-    fclose(file);
     return 0;
 }
 int check_file_exists(char *path)
@@ -413,6 +402,7 @@ void *client_handler(void *arguments)
         break;
 
     case WRITE_REQUEST:
+
         // TODO handle file locking
         // TODO handle folder path given for read and write
         log_info("WRITE_REQUEST", &client_ss_handler_arguments->client_address);
@@ -426,7 +416,20 @@ void *client_handler(void *arguments)
         }
         send_response(client_ss_handler_arguments->socket, response);
         log_response(response, &client_ss_handler_arguments->client_address);
+        
+        FILE *file = fopen(request_buffer.request_content.write_request_data.path, "a");
+        if(file == NULL)
+        {
+            log_errno_error("Error while opening file: %s\n");
+            return NULL;
+            break;
+        }
+        // add the file to writing_file array 
+        strcpy(writing_file[writing_file_count++],request_buffer.request_content.write_request_data.path);
+        try_lock_file(file, F_WRLCK);
+
         while (1)
+        
         {
             char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1] = {0};
             int k = receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer);
@@ -442,7 +445,7 @@ void *client_handler(void *arguments)
             }
             else
             {
-                if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
+                if (write_file(file, buffer) == -1)
                 {
                     response = INTERNAL_ERROR_RESPONSE;
                     break;
@@ -453,6 +456,21 @@ void *client_handler(void *arguments)
                 }
             }
         }
+        unlock_file(file);
+        //remove the file from writing_file array
+        for(int i = 0 ; i < writing_file_count ; i++)
+        {
+            if(strcmp(writing_file[i],request_buffer.request_content.write_request_data.path) == 0)
+            {
+                for(int j = i ; j < writing_file_count - 1 ; j++)
+                {
+                    strcpy(writing_file[j],writing_file[j+1]);
+                }
+                writing_file_count--;
+                break;
+            }
+        }
+        fclose(file);
         send_response(client_ss_handler_arguments->socket, response);
         break;
 

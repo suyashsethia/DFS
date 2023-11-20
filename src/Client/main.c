@@ -5,13 +5,10 @@
 #include "delete.h"
 #include "read.h"
 #include "write.h"
-<<<<<<< HEAD
 #include "copy.h"
 // #include "list.h"
-=======
 // #include "copy.h"
 #include "list.h"
->>>>>>> 1831df5 (LIST and GEt_INFO done)
 #include "get.h"
 
 int main()
@@ -45,25 +42,15 @@ int main()
         {
             write_();
         }
-<<<<<<< HEAD
         if (strcmp(command, "COPY\n") == 0)
         {
             copy();
         }
-        // if (strcmp(command, "LIST\n") == 0) {
-        //     list();
-        // }
-        if (strcmp(command, "GET\n") == 0)
-        {
-=======
-        // if (strcmp(command, "COPY\n") == 0) {
-        //     copy();
-        // }
         if (strcmp(command, "LIST\n") == 0) {
             list();
         }
-        if (strcmp(command, "GET\n") == 0) {
->>>>>>> 1831df5 (LIST and GEt_INFO done)
+        if (strcmp(command, "GET\n") == 0)
+        {
             gett();
         }
     }

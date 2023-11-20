@@ -3,10 +3,55 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
 
 #include "delete.h"
 #include "../Common/requests.h"
 #include "../Common/loggers.h"
+// #include "client_handler.c"
+
+int try_lock_filee(FILE *file, short type)
+{
+    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
+
+    struct flock lock;
+    lock.l_type = type; // lock for both read and write depending on the type
+    lock.l_start = 0;
+    lock.l_whence = SEEK_SET;
+    lock.l_len = 0;
+
+    // Attempt to obtain the write lock without blocking
+    if (fcntl(fd, F_SETLK, &lock) == -1)
+    {
+        // Handle the case when the lock cannot be acquired immediately
+        log_errno_error("Error obtaining write lock: %s\n");
+        // perror("Error obtaining write lock");
+        return -1;
+    }
+
+    // Lock obtained successfully
+    return 0;
+}
+
+void unlock_filee(FILE *file)
+{
+    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
+
+    struct flock unlock;
+    unlock.l_type = F_UNLCK; // Unlock
+    unlock.l_start = 0;
+    unlock.l_whence = SEEK_SET;
+    unlock.l_len = 0;
+
+    if (fcntl(fd, F_SETLK, &unlock) == -1)
+    {
+        log_errno_error("Error unlocking file: %s\n");
+        // perror("Error unlocking file");
+        exit(EXIT_FAILURE);
+    }
+}
 
 int delete_folder_contents(const char *system_path)
 {
@@ -57,10 +102,30 @@ int delete_file_or_folder(const char *system_path)
     }
     else if (S_ISREG(path_stat.st_mode))
     {
+        FILE *file = fopen(system_path, "a");
+        if (file == NULL)
+        {
+            return -1;
+        }
+        
+        // check if file is present in writing_file in a for loop 
+        // if present then log error and return -1
+        for (int i = 0; i < writing_file_count; i++)
+        {
+            if (strcmp(writing_file[i], system_path) == 0)
+            {
+                log_error("File is being written to: %s\n");
+                return -1;
+            }
+        }
+        try_lock_filee(file , F_WRLCK);
+
         if (remove(system_path) != 0)
         {
             return -1;
         }
+        unlock_filee(file);
+        fclose(file);
     }
     else
     {

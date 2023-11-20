@@ -20,6 +20,9 @@
 
 #include "../Common/responses.h"
 
+extern char writing_file[MAX_PATH_LENGTH][MAX_ACCESIBLE_PATHS];
+extern int writing_file_count;
+
 typedef struct CreateRequestData
 {
     bool is_folder;
