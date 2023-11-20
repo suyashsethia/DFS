@@ -8,8 +8,6 @@
 #include "../Common/requests.h"
 #include "../Common/loggers.h"
 
-int _delete_file_or_folder(const char *system_path);
-
 int delete_folder_contents(const char *system_path)
 {
     DIR *dir = opendir(system_path);
@@ -25,7 +23,7 @@ int delete_folder_contents(const char *system_path)
         {
             char entry_path[MAX_PATH_LENGTH];
             snprintf(entry_path, sizeof(entry_path), "%s/%s", system_path, entry->d_name);
-            if (_delete_file_or_folder(entry_path) != 0)
+            if (delete_file_or_folder(entry_path) != 0)
             {
                 closedir(dir);
                 return -1;
@@ -37,7 +35,7 @@ int delete_folder_contents(const char *system_path)
     return 0;
 }
 
-int _delete_file_or_folder(const char *system_path)
+int delete_file_or_folder(const char *system_path)
 {
     struct stat path_stat;
     if (stat(system_path, &path_stat) != 0)
@@ -70,12 +68,4 @@ int _delete_file_or_folder(const char *system_path)
     }
 
     return 0;
-}
-
-int delete_file_or_folder(int ssid, const char *path)
-{
-    char system_path[MAX_PATH_LENGTH];
-    snprintf(system_path, MAX_PATH_LENGTH, "%d/%s", ssid, path);
-
-    return _delete_file_or_folder(system_path);
 }

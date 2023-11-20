@@ -1,6 +1,6 @@
 #ifndef DELETE_H
 
-int delete_file_or_folder(int ssid, const char *path);
+int delete_file_or_folder(const char *path);
 
 #define DELETE_H
 #endif

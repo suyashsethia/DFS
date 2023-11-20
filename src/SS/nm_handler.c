@@ -34,7 +34,7 @@ void *nm_handler(void *arguments)
         log_info("CREATE_REQUEST", &nm_arguments->nm_address);
         if (request_buffer.request_content.create_request_data.is_folder)
         {
-            if (create_folder(nm_arguments->ssid, request_buffer.request_content.create_request_data.path) == -1)
+            if (create_folder(request_buffer.request_content.create_request_data.path) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
@@ -45,7 +45,7 @@ void *nm_handler(void *arguments)
         }
         else
         {
-            if (create_file(nm_arguments->ssid, request_buffer.request_content.create_request_data.path) == -1)
+            if (create_file(request_buffer.request_content.create_request_data.path) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
@@ -57,7 +57,7 @@ void *nm_handler(void *arguments)
         break;
     case DELETE_REQUEST:
         log_info("DELETE_REQUEST", &nm_arguments->nm_address);
-        if (delete_file_or_folder(nm_arguments->ssid, request_buffer.request_content.delete_request_data.path) == -1)
+        if (delete_file_or_folder(request_buffer.request_content.delete_request_data.path) == -1)
         {
             log_errno_error("Couldn't delete: %s\n");
             response = INTERNAL_ERROR_RESPONSE;

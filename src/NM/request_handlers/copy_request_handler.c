@@ -41,8 +41,8 @@ char copy_request_handler(char *source_path, char *destination_path)
         }
     }
     free(parent);
-
-    struct sockaddr_in connection_address = get_nm_connection_address(source_ss_id);
+    // connect to client handler as a client as client handler of ss has copy handler
+    struct sockaddr_in connection_address = get_client_connection_address(source_ss_id);
     int connection_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (connection_socket == -1)
     {

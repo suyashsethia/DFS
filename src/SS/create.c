@@ -2,17 +2,13 @@
 #include "../Common/requests.h"
 #include <sys/stat.h>
 
-int create_folder(int ssid, const char *path)
+int create_folder(const char *path)
 {
-    char folder_path[MAX_PATH_LENGTH];
-    snprintf(folder_path, MAX_PATH_LENGTH, "%d/%s", ssid, path);
-    return mkdir(folder_path, 0777);
+    return mkdir(path, 0777);
 }
-int create_file(int ssid, const char *path)
+int create_file(const char *path)
 {
-    char file_path[MAX_PATH_LENGTH];
-    snprintf(file_path, MAX_PATH_LENGTH, "%d/%s", ssid, path);
-    FILE *file = fopen(file_path, "w");
+    FILE *file = fopen(path, "w");
     if (file == NULL)
     {
         return -1;

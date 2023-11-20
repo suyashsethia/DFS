@@ -5,7 +5,7 @@
 #include "delete.h"
 #include "read.h"
 #include "write.h"
-// #include "copy.h"
+#include "copy.h"
 // #include "list.h"
 // #include "get.h"
 
@@ -40,15 +40,16 @@ int main()
         {
             write_();
         }
-        // if (strcmp(command, "COPY\n") == 0) {
-        //     copy();
-        // }
+        if (strcmp(command, "COPY\n") == 0)
+        {
+            copy();
+        }
         // if (strcmp(command, "LIST\n") == 0) {
         //     list();
         // }
-        if (strcmp(command, "GET\n") == 0) {
-            get();
-        }
+        // if (strcmp(command, "GET\n") == 0) {
+        //     get();
+        // }
     }
 
     printf("Thank you, Client is closed, Happy diwali\n");

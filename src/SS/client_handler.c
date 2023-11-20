@@ -19,6 +19,8 @@
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
+#include "create.h"
+#include "delete.h"
 
 typedef struct ClientHandlerArguments
 {
@@ -67,7 +69,7 @@ void unlock_file(FILE *file)
         exit(EXIT_FAILURE);
     }
 }
-int read_file_and_send_data(int ssid, const char *path, int client_socket)
+int read_file_and_send_data(const char *path, int client_socket)
 {
     // char path[MAX_PATH_LENGTH + sizeof(int) + 1];
     // snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
@@ -151,11 +153,11 @@ int is_directory(const char *path)
         return -1; // Return -1 on error
     }
 }
-int copy_(const char *path, const char *destination, struct sockaddr_in *destination_address)
+int copy_(const char *path, const char *destination, struct sockaddr_in *destination_address, uint64_t *copied_paths_count, char copied_paths[][MAX_PATH_LENGTH], char *exclude_copy)
 {
-    if (strcmp(path, destination) == 0)
+    // TODO remove copy inside self bugs
+    if (strcmp(path, exclude_copy) == 0)
         return 0;
-
     int is_dir = is_directory(path);
     if (is_dir == -1)
         return -1;
@@ -218,7 +220,7 @@ int copy_(const char *path, const char *destination, struct sockaddr_in *destina
             char follow_destination_path[MAX_PATH_LENGTH];
             snprintf(follow_destination_path, MAX_PATH_LENGTH, "%s/%s", path, entry->d_name);
 
-            if (copy_(follow_source_path, follow_destination_path, destination_address) == -1)
+            if (copy_(follow_source_path, follow_destination_path, destination_address, copied_paths_count, copied_paths, exclude_copy) == -1)
                 return -1;
         }
     }
@@ -254,12 +256,20 @@ int copy_(const char *path, const char *destination, struct sockaddr_in *destina
         {
             return -1;
         }
-    }
 
+        if (read_file_and_send_data(path, destination_socket) == -1)
+        {
+            return -1;
+        }
+
+        close(destination_socket);
+    }
+    char *new_path = copied_paths[(*copied_paths_count)++];
+    strncpy(new_path, destination, MAX_PATH_LENGTH);
     return 0;
 }
 
-int write_file(int ssid, const char *path, char *data_buffer)
+int write_file(const char *path, char *data_buffer)
 {
     // char path[MAX_PATH_LENGTH + 1];
     // snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
@@ -290,17 +300,15 @@ int write_file(int ssid, const char *path, char *data_buffer)
     fclose(file);
     return 0;
 }
-int check_file_exists(int ssid, char *filepath)
+int check_file_exists(char *path)
 {
-    char path[MAX_PATH_LENGTH + 1];
-    snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
     FILE *file = fopen(path, "r");
     if (file == NULL)
     {
-        return -1;
+        return 0;
     }
     fclose(file);
-    return 0;
+    return 1;
 }
 int get_info_send_info(const char *path, int client_socket)
 {
@@ -334,6 +342,53 @@ void *client_handler(void *arguments)
     char response;
     switch (request_buffer.request_type)
     {
+    case CREATE_REQUEST:
+        log_info("CREATE_REQUEST", &client_ss_handler_arguments->client_address);
+        if (request_buffer.request_content.create_request_data.is_folder)
+        {
+            if (create_folder(request_buffer.request_content.create_request_data.path) == -1)
+            {
+                response = INTERNAL_ERROR_RESPONSE;
+            }
+            else
+            {
+                response = OK_RESPONSE;
+            }
+        }
+        else
+        {
+            if (create_file(request_buffer.request_content.create_request_data.path) == -1)
+            {
+                response = INTERNAL_ERROR_RESPONSE;
+            }
+            else
+            {
+                response = OK_RESPONSE;
+            }
+        }
+        log_response(response, &client_ss_handler_arguments->client_address);
+        if (send_response(client_ss_handler_arguments->socket, response) == -1)
+        {
+            log_errno_error("Couldn't send response: %s\n");
+        }
+        break;
+    case DELETE_REQUEST:
+        log_info("DELETE_REQUEST", &client_ss_handler_arguments->client_address);
+        if (delete_file_or_folder(request_buffer.request_content.delete_request_data.path) == -1)
+        {
+            log_errno_error("Couldn't delete: %s\n");
+            response = INTERNAL_ERROR_RESPONSE;
+        }
+        else
+        {
+            response = OK_RESPONSE;
+        }
+        log_response(response, &client_ss_handler_arguments->client_address);
+        if (send_response(client_ss_handler_arguments->socket, response) == -1)
+        {
+            log_errno_error("Couldn't send response: %s\n");
+        }
+        break;
     case READ_REQUEST:
         log_info("READ_REQUEST", &client_ss_handler_arguments->client_address);
         if (is_directory(request_buffer.request_content.read_request_data.path) == -1)
@@ -347,7 +402,7 @@ void *client_handler(void *arguments)
 
         send_response(client_ss_handler_arguments->socket, OK_START_STREAM_RESPONSE);
         log_response(OK_START_STREAM_RESPONSE, &client_ss_handler_arguments->client_address);
-        if (read_file_and_send_data(client_ss_handler_arguments->ssid, request_buffer.request_content.read_request_data.path, client_ss_handler_arguments->socket) == -1)
+        if (read_file_and_send_data(request_buffer.request_content.read_request_data.path, client_ss_handler_arguments->socket) == -1)
         {
             response = INTERNAL_ERROR_RESPONSE;
             send_response(client_ss_handler_arguments->socket, response);
@@ -360,7 +415,7 @@ void *client_handler(void *arguments)
         // TODO handle file locking
         // TODO handle folder path given for read and write
         log_info("WRITE_REQUEST", &client_ss_handler_arguments->client_address);
-        if (check_file_exists(client_ss_handler_arguments->ssid, request_buffer.request_content.write_request_data.path) == -1)
+        if (check_file_exists(request_buffer.request_content.write_request_data.path) == -1)
         {
             response = NOT_FOUND_RESPONSE;
         }
@@ -386,7 +441,7 @@ void *client_handler(void *arguments)
             }
             else
             {
-                if (write_file(client_ss_handler_arguments->ssid, request_buffer.request_content.write_request_data.path, buffer) == -1)
+                if (write_file(request_buffer.request_content.write_request_data.path, buffer) == -1)
                 {
                     response = INTERNAL_ERROR_RESPONSE;
                     break;
@@ -408,22 +463,41 @@ void *client_handler(void *arguments)
             log_errno_error("Couldn't receive destination address: %s\n");
             response = INTERNAL_ERROR_RESPONSE;
         }
-        else if (check_file_exists(client_ss_handler_arguments->ssid, request_buffer.request_content.copy_request_data.source_path) == -1)
+        else if (check_file_exists(request_buffer.request_content.copy_request_data.source_path) == 0 && is_directory(request_buffer.request_content.copy_request_data.source_path) != 1)
         {
             response = NOT_FOUND_RESPONSE;
         }
         else
         {
-            if (copy_(request_buffer.request_content.copy_request_data.source_path, request_buffer.request_content.copy_request_data.destination_path, &destination_address) == -1)
+
+            char copied_paths[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH];
+            uint64_t copied_paths_count = 0;
+            if (copy_(request_buffer.request_content.copy_request_data.source_path, request_buffer.request_content.copy_request_data.destination_path, &destination_address, &copied_paths_count, copied_paths, request_buffer.request_content.copy_request_data.destination_path) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
             else
             {
                 response = OK_RESPONSE;
+                if (send_response(client_ss_handler_arguments->socket, response) == -1)
+                {
+                    log_errno_error("Couldn't send response: %s\n");
+                    break;
+                }
+
+                if (send_copied_paths(client_ss_handler_arguments->socket, copied_paths_count, copied_paths) == -1)
+                {
+                    log_errno_error("Couldn't send copied paths: %s\n");
+                }
+                break;
             }
         }
+
         log_response(response, &client_ss_handler_arguments->client_address);
+        if (send_response(client_ss_handler_arguments->socket, response) == -1)
+        {
+            log_errno_error("Couldn't send response: %s\n");
+        }
         break;
     case FILE_INFO:
         log_info("FILE_INFO", &client_ss_handler_arguments->client_address);

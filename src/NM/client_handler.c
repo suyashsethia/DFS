@@ -67,7 +67,7 @@ void *client_handler(void *client_handler_arguments_raw)
     case FILE_INFO:
         log_info("FILE_INFO", &client_handler_arguments->client_address);
         // same as read, redirect
-        (client_handler_arguments->socket, &client_handler_arguments->client_address, request_buffer.request_content.file_info_request_data.path);
+        read_request_handler(client_handler_arguments->socket, &client_handler_arguments->client_address, request_buffer.request_content.file_info_request_data.path);
         break;
     case COPY_REQUEST:
         log_info("COPY_REQUEST", &client_handler_arguments->client_address);

@@ -56,9 +56,9 @@ void copy()
     }
     // RECEIVING RESPONSE WITH HAS AN ADDRESS
     char response;
-    if (receive_copy_response(connection_socket, &response) == -1)
+    if (receive_response(connection_socket, &response) == -1)
     {
-        log_errno_error("Couldn't copy response: %s\n");
+        log_errno_error("Couldn't receive response: %s\n");
         return;
     }
     log_response(response, &nm_address);
