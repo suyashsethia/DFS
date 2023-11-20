@@ -2,9 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-
 #include "trie.h"
-
 
 TrieNode *init_trie_node(char character)
 {
@@ -28,8 +26,9 @@ void free_trienode(TrieNode *node)
 
 void insert_trie(TrieNode *root, char *word, int data)
 {
-    for (int i = 0; word[i] != '\0'; i++) {
-        int index = (unsigned char) word[i];
+    for (int i = 0; word[i] != '\0'; i++)
+    {
+        int index = (unsigned char)word[i];
         if (root->children[index] == NULL)
             root->children[index] = init_trie_node(word[i]);
 
@@ -40,8 +39,9 @@ void insert_trie(TrieNode *root, char *word, int data)
 
 int search_trie(TrieNode *root, const char *word)
 {
-    for (int i = 0; word[i] != '\0'; i++) {
-        int index = (unsigned char) word[i];
+    for (int i = 0; word[i] != '\0'; i++)
+    {
+        int index = (unsigned char)word[i];
         if (root->children[index] == NULL)
             return TRIE_SENTINEL_DATA;
         root = root->children[index];
@@ -51,8 +51,9 @@ int search_trie(TrieNode *root, const char *word)
 
 bool is_leaf_node(TrieNode *root, const char *word)
 {
-    for (int i = 0; word[i] != '\0'; i++) {
-        int index = (unsigned char) word[i];
+    for (int i = 0; word[i] != '\0'; i++)
+    {
+        int index = (unsigned char)word[i];
         if (root->children[index] != NULL)
             root = root->children[index];
     }
@@ -66,11 +67,14 @@ int check_divergence(TrieNode *root, char *word)
         return 0;
 
     int last_index = 0;
-    for (int i = 0; i < length; i++) {
-        int index = (unsigned char) word[i];
-        if (root->children[index]) {
+    for (int i = 0; i < length; i++)
+    {
+        int index = (unsigned char)word[i];
+        if (root->children[index])
+        {
             for (int j = 0; j < UCHAR_MAX; j++)
-                if (j != index && root->children[j]) {
+                if (j != index && root->children[j])
+                {
                     last_index = i + 1;
                     break;
                 }
@@ -92,7 +96,8 @@ char *find_longest_prefix(TrieNode *root, char *word)
     strcpy(longest_prefix, word);
 
     int branch_index = check_divergence(root, longest_prefix) - 1;
-    if (branch_index >= 0) {
+    if (branch_index >= 0)
+    {
         longest_prefix[branch_index] = '\0';
         longest_prefix = realloc(longest_prefix, (branch_index + 1));
     }
@@ -112,30 +117,31 @@ void delete_trie(TrieNode *root, char *word)
         return;
 
     char *longest_prefix = find_longest_prefix(root, word);
-//    if (longest_prefix[0] == '\0') {
-//        free(longest_prefix);
-//        return;
-//    }
+    //    if (longest_prefix[0] == '\0') {
+    //        free(longest_prefix);
+    //        return;
+    //    }
     int i = 0;
-    for (; longest_prefix[i] != '\0'; i++) {
-        int index = (unsigned char) longest_prefix[i];
+    for (; longest_prefix[i] != '\0'; i++)
+    {
+        int index = (unsigned char)longest_prefix[i];
         if (root->children[index] != NULL)
             root = root->children[index];
-        else {
+        else
+        {
             free(longest_prefix);
             return;
         }
     }
 
     // Do we need the for loop? just call free trie node on the next char
-    int index = (unsigned char) word[i];
-    if (root->children[index] != NULL) {
+    int index = (unsigned char)word[i];
+    if (root->children[index] != NULL)
+    {
         TrieNode *remove_node = root->children[index];
         root->children[index] = NULL;
         free_trienode(remove_node);
     }
 
-
     free(longest_prefix);
 }
-

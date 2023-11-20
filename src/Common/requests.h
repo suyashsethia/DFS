@@ -103,6 +103,8 @@ int send_read_request(int socket, const char *path);
 
 int send_write_request(int socket, const char *path);
 
+int send_copy_request(int socket, const char *source_path, const char *destination_path);
+
 int receive_request(int socket, Request *request_buffer);
 
 #endif // REQUESTS_H

@@ -4,6 +4,7 @@
 
 #include "responses.h"
 #include "network_utils.h"
+#include "requests.h"
 
 int send_response(int socket, char response_type)
 {
@@ -62,4 +63,18 @@ int receive_streaming_response_payload(int socket, char *data_buffer)
         errno = EINVAL;
         return -1;
     }
+}
+
+int send_copied_paths(int socket, uint64_t copied_paths_count, char paths[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH])
+{
+    if (send(socket, &copied_paths_count, sizeof(copied_paths_count), 0) == -1)
+        return -1;
+    return send(socket, paths, MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS, 0);
+}
+
+int receive_copied_paths(int socket, uint64_t *copied_paths_count_buffer, char path_buffer[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH])
+{
+    if (recv(socket, copied_paths_count_buffer, sizeof(uint64_t), 0) == -1)
+        return -1;
+    return recv(socket, path_buffer, MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS, 0);
 }

@@ -2,6 +2,7 @@
 #include "../ss_info.h"
 #include "../../Common/responses.h"
 #include "../../Common/loggers.h"
+#include "../../Common/requests.h"
 
 char delete_request_handler(char *path)
 {

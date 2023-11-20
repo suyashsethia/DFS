@@ -2,6 +2,8 @@
 #define RESPONSES_H
 
 #include <arpa/inet.h>
+#include <stdint.h>
+#include "requests.h"
 
 // update loggers.c when adding responses
 #define NOT_FOUND_RESPONSE '0'
@@ -22,6 +24,10 @@ int receive_response(int socket, char *response_buffer);
 
 int send_redirect_response_payload(int socket, struct sockaddr_in *address);           // from nm to client
 int receive_redirect_response_payload(int socket, struct sockaddr_in *address_buffer); // from client to nm
+
+int send_copied_paths(int socket, uint64_t copied_paths_count, char paths[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH]);
+
+int receive_copied_paths(int socket, uint64_t *copied_paths_count_buffer, char path_buffer[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH]);
 
 /* Send upto MAX_STREAMING_RESPONSE_PAYLOAD_SIZE */
 int send_streaming_response_payload(int socket, char *data, uint64_t size);

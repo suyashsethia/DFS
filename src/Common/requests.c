@@ -60,6 +60,19 @@ int send_create_backup_request(int socket, const char *file_path, bool is_folder
     return send_request(socket, &request);
 }
 
+int send_copy_request(int socket, const char *source_path, const char *destination_path)
+{
+    Request request = {.request_type = COPY_REQUEST};
+
+    strncpy(request.request_content.copy_request_data.source_path, source_path,
+            sizeof(request.request_content.copy_request_data.source_path));
+
+    strncpy(request.request_content.copy_request_data.destination_path, destination_path,
+            sizeof(request.request_content.copy_request_data.destination_path));
+
+    return send_request(socket, &request);
+}
+
 int send_register_ss_request(int socket, int ss_id, struct sockaddr_in *nm_connection_address,
                              struct sockaddr_in *client_connection_address,
                              uint64_t accessible_paths_count,

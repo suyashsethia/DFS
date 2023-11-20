@@ -11,6 +11,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <arpa/inet.h>
 
 #include "client_handler.h"
 #include "../Common/loggers.h"
@@ -94,42 +95,124 @@ int recursive_path_finderr(char *path, char *prefix, char list_of_paths[][MAX_PA
     // Close the directory
     closedir(dir);
 }
-
-int copy_file(const char *path, const char *destination)
+int is_directory(const char *path)
 {
-    FILE *file = fopen(path, "rb");
-    if (file == NULL)
+    struct stat file_stat;
+
+    if (stat(path, &file_stat) == 0)
     {
-        // Handle error appropriately, log, etc.
-        perror("Error while opening source file");
+        return S_ISDIR(file_stat.st_mode) ? 1 : 0;
+    }
+    else
+    {
+        log_errno_error("Couldn't get dir info: %s\n");
+        return -1; // Return -1 on error
+    }
+}
+int copy_(const char *path, const char *destination, struct sockaddr_in *destination_address)
+{
+    if (strcmp(path, destination) == 0)
+        return 0;
+
+    int is_dir = is_directory(path);
+    if (is_dir == -1)
+        return -1;
+    int destination_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (destination_socket == -1)
+    {
+        log_errno_error("Couldn't create socket: %s\n");
         return -1;
     }
 
-    FILE *destination_file = fopen(destination, "wb");
-    if (destination_file == NULL)
+    if (connect(destination_socket, (struct sockaddr *)destination_address, sizeof(*destination_address)) == -1)
     {
-        // Attempt to create the destination file
-        destination_file = fopen(destination, "wb");
+        log_errno_error("Couldn't connect to destination ss: %s\n");
+        return -1;
+    }
 
-        if (destination_file == NULL)
+    if (send_create_request(destination_socket, destination, is_dir == 1) == -1)
+    {
+        log_errno_error("Couldn't send create request: %s\n");
+        return -1;
+    }
+
+    char response;
+    if (receive_response(destination_socket, &response) == -1)
+    {
+        log_errno_error("Couldn't receive response: %s\n");
+        return -1;
+    }
+    log_response(response, destination_address);
+    if (response != OK_RESPONSE)
+    {
+        return -1;
+    }
+
+    close(destination_socket);
+
+    if (is_dir == 1)
+    {
+        DIR *dir;
+        struct dirent *entry;
+        // Open the directory
+        dir = opendir(path);
+        if (dir == NULL)
         {
-            // Handle error appropriately, log, etc.
-            perror("Error while opening/creating destination file");
-            fclose(file);
+            log_errno_error("Unable to open directory: %s\n");
+            // perror("Unable to open directory");
+            return -1;
+        }
+
+        // Read directory entries
+        while ((entry = readdir(dir)) != NULL)
+        {
+            // Ignore "." and ".."
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            {
+                continue;
+            }
+            char follow_source_path[MAX_PATH_LENGTH];
+            snprintf(follow_source_path, MAX_PATH_LENGTH, "%s/%s", path, entry->d_name);
+            char follow_destination_path[MAX_PATH_LENGTH];
+            snprintf(follow_destination_path, MAX_PATH_LENGTH, "%s/%s", path, entry->d_name);
+
+            if (copy_(follow_source_path, follow_destination_path, destination_address) == -1)
+                return -1;
+        }
+    }
+    else
+    {
+        int destination_socket = socket(AF_INET, SOCK_STREAM, 0);
+        if (destination_socket == -1)
+        {
+            log_errno_error("Couldn't create socket: %s\n");
+            return -1;
+        }
+
+        if (connect(destination_socket, (struct sockaddr *)destination_address, sizeof(*destination_address)) == -1)
+        {
+            log_errno_error("Couldn't connect to destination ss: %s\n");
+            return -1;
+        }
+
+        if (send_write_request(destination_socket, destination) == -1)
+        {
+            log_errno_error("Couldn't send write request: %s\n");
+            return -1;
+        }
+
+        char response;
+        if (receive_response(destination_socket, &response) == -1)
+        {
+            log_errno_error("Couldn't receive response: %s\n");
+            return -1;
+        }
+        log_response(response, destination_address);
+        if (response != OK_START_STREAM_RESPONSE)
+        {
             return -1;
         }
     }
-
-    char buffer[MAX_FILE_SIZE];
-    size_t bytes_read;
-
-    while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0)
-    {
-        fwrite(buffer, 1, bytes_read, destination_file);
-    }
-
-    fclose(file);
-    fclose(destination_file);
 
     return 0;
 }
@@ -187,20 +270,7 @@ int get_info_send_info(const char *path, int client_socket)
 
     return 0;
 }
-int is_directory(const char *path)
-{
-    struct stat file_stat;
 
-    if (stat(path, &file_stat) == 0)
-    {
-        return S_ISDIR(file_stat.st_mode) ? -1 : 0;
-    }
-    else
-    {
-        perror("Error getting file/directory information");
-        return -1; // Return -1 on error
-    }
-}
 void *client_handler(void *arguments)
 {
     ClientHandlerArguments *client_ss_handler_arguments = (ClientHandlerArguments *)arguments;
@@ -219,7 +289,9 @@ void *client_handler(void *arguments)
         {
             response = NOT_FOUND_RESPONSE;
             send_response(client_ss_handler_arguments->socket, response);
-            return;
+            log_response(response, &client_ss_handler_arguments->client_address);
+
+            break;
         }
 
         send_response(client_ss_handler_arguments->socket, OK_START_STREAM_RESPONSE);
@@ -228,11 +300,14 @@ void *client_handler(void *arguments)
         {
             response = INTERNAL_ERROR_RESPONSE;
             send_response(client_ss_handler_arguments->socket, response);
+            log_response(response, &client_ss_handler_arguments->client_address);
         }
 
         break;
 
     case WRITE_REQUEST:
+        // TODO handle file locking
+        // TODO handle folder path given for read and write
         log_info("WRITE_REQUEST", &client_ss_handler_arguments->client_address);
         if (check_file_exists(client_ss_handler_arguments->ssid, request_buffer.request_content.write_request_data.path) == -1)
         {
@@ -243,7 +318,7 @@ void *client_handler(void *arguments)
             response = OK_START_STREAM_RESPONSE;
         }
         send_response(client_ss_handler_arguments->socket, response);
-
+        log_response(response, &client_ss_handler_arguments->client_address);
         while (1)
         {
             char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1] = {0};
@@ -276,13 +351,19 @@ void *client_handler(void *arguments)
 
     case COPY_REQUEST:
         log_info("COPY_REQUEST", &client_ss_handler_arguments->client_address);
-        if (check_file_exists(client_ss_handler_arguments->ssid, request_buffer.request_content.copy_request_data.source_path) == -1)
+        struct sockaddr_in destination_address;
+        if (receive_redirect_response_payload(client_ss_handler_arguments->socket, &destination_address) == -1)
+        {
+            log_errno_error("Couldn't receive destination address: %s\n");
+            response = INTERNAL_ERROR_RESPONSE;
+        }
+        else if (check_file_exists(client_ss_handler_arguments->ssid, request_buffer.request_content.copy_request_data.source_path) == -1)
         {
             response = NOT_FOUND_RESPONSE;
         }
         else
         {
-            if (copy_file(request_buffer.request_content.copy_request_data.source_path, request_buffer.request_content.copy_request_data.destination_path) == -1)
+            if (copy_(request_buffer.request_content.copy_request_data.source_path, request_buffer.request_content.copy_request_data.destination_path, &destination_address) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
@@ -291,6 +372,7 @@ void *client_handler(void *arguments)
                 response = OK_RESPONSE;
             }
         }
+        log_response(response, &client_ss_handler_arguments->client_address);
         break;
     case FILE_INFO:
         log_info("FILE_INFO", &client_ss_handler_arguments->client_address);
