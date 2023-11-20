@@ -7,7 +7,7 @@
 #include "write.h"
 #include "copy.h"
 // #include "list.h"
-// #include "get.h"
+#include "get.h"
 
 int main()
 {
@@ -47,9 +47,10 @@ int main()
         // if (strcmp(command, "LIST\n") == 0) {
         //     list();
         // }
-        // if (strcmp(command, "GET\n") == 0) {
-        //     get();
-        // }
+        if (strcmp(command, "GET\n") == 0)
+        {
+            gett();
+        }
     }
 
     printf("Thank you, Client is closed, Happy diwali\n");

@@ -81,14 +81,15 @@ int initialize(int argc, char *argv[])
     int paths_count = 0;
     if (flag == 0)
     {
-        char *path = list_of_paths[(paths_count)++]; // Adjust the size as needed
-        strncpy(path, ss_id, MAX_PATH_LENGTH - 1);   // Copy the original string to the destination
-        strcat(path, "/");
         ss_folder_create(ss_id);
     }
     else
     {
         recursive_path_finder(ss_id, "", list_of_paths, &paths_count);
+    }
+    if (chdir(ss_id) == -1) {
+        log_errno_error("Couldn't change directory: %s\n");
+        return -1;
     }
 
     int nm_init_socket = socket(AF_INET, SOCK_STREAM, 0);

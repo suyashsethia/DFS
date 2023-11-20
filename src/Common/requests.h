@@ -107,4 +107,6 @@ int send_copy_request(int socket, const char *source_path, const char *destinati
 
 int receive_request(int socket, Request *request_buffer);
 
+int send_get_request(int socket, const char *path);
+
 #endif // REQUESTS_H

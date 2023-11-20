@@ -1,6 +1,6 @@
 #ifndef GET_H
 #define GET_H
 
-void get();
+void gett();
 
 #endif // GET_H
