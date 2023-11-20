@@ -525,14 +525,14 @@ void *client_handler(void *arguments)
         {
             response = OK_RESPONSE;
         }
-        send_response(client_ss_handler_arguments->socket, response);
         // send the data to the client list of paths , paths_count
-        if (send(client_ss_handler_arguments->socket, &paths_count, sizeof(paths_count), 0) == -1)
+        send_response(client_ss_handler_arguments->socket, response);
+        if (send(client_ss_handler_arguments->socket, list_of_paths, sizeof(list_of_paths), 0) == -1)
         {
-            log_errno_error("Error while sending paths_count:\n");
+            log_errno_error("Error while sending paths: %s\n");
             return NULL;
         }
-        send_response(client_ss_handler_arguments->socket, response);
+        break;
 
     default:
         log_info("Invalid Request Type", &client_ss_handler_arguments->client_address);

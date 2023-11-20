@@ -12,7 +12,7 @@
 #include "request_handlers/read_request_handler.h"
 #include "request_handlers/file_info_handler.c"
 #include "request_handlers/copy_request_handler.h"
-
+#include "request_handlers/list_request_handler.c"
 typedef struct ClientHandlerArguments
 {
     int socket;
@@ -77,6 +77,11 @@ void *client_handler(void *client_handler_arguments_raw)
         log_response(response, &client_handler_arguments->client_address);
         if (send_response(client_handler_arguments->socket, response) == -1)
             log_errno_error("Couldn't send response: %s\n");
+        break;
+    case GET_LIST:
+        log_info("GET_LIST", &client_handler_arguments->client_address);
+        // same as read, redirect
+        list_request_handler(client_handler_arguments->socket, &client_handler_arguments->client_address, request_buffer.request_content.get_list_request_data.path);
         break;
     default:
         log_info("INVALID_REQUEST_RESPONSE", &client_handler_arguments->client_address);
