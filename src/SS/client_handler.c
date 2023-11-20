@@ -26,7 +26,46 @@ typedef struct ClientHandlerArguments
     struct sockaddr_in client_address;
     socklen_t client_address_size;
 } ClientHandlerArguments;
+int try_lock_file(FILE *file, short type)
+{
+    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
 
+    struct flock lock;
+    lock.l_type = type; // lock for both read and write depending on the type
+    lock.l_start = 0;
+    lock.l_whence = SEEK_SET;
+    lock.l_len = 0;
+
+    // Attempt to obtain the write lock without blocking
+    if (fcntl(fd, F_SETLK, &lock) == -1)
+    {
+        // Handle the case when the lock cannot be acquired immediately
+        log_errno_error("Error obtaining write lock: %s\n");
+        // perror("Error obtaining write lock");
+        return -1;
+    }
+
+    // Lock obtained successfully
+    return 0;
+}
+
+void unlock_file(FILE *file)
+{
+    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
+
+    struct flock unlock;
+    unlock.l_type = F_UNLCK; // Unlock
+    unlock.l_start = 0;
+    unlock.l_whence = SEEK_SET;
+    unlock.l_len = 0;
+
+    if (fcntl(fd, F_SETLK, &unlock) == -1)
+    {
+        log_errno_error("Error unlocking file: %s\n");
+        // perror("Error unlocking file");
+        exit(EXIT_FAILURE);
+    }
+}
 int read_file_and_send_data(int ssid, const char *filepath, int client_socket)
 {
     char path[MAX_PATH_LENGTH + sizeof(int) + 1];
@@ -37,6 +76,7 @@ int read_file_and_send_data(int ssid, const char *filepath, int client_socket)
         log_errno_error("Error while opening file: %s\n");
         return -1;
     }
+    try_lock_file(file, F_RDLCK);
     fseek(file, 0, SEEK_SET);
 
     char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE];
@@ -50,6 +90,7 @@ int read_file_and_send_data(int ssid, const char *filepath, int client_socket)
         }
     }
     end_streaming_response_payload(client_socket);
+    unlock_file(file);
     fclose(file);
     return 0;
 }
@@ -134,46 +175,7 @@ int copy_file(const char *path, const char *destination)
 
     return 0;
 }
-int try_lock_file(FILE *file)
-{
-    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
 
-    struct flock lock;
-    lock.l_type = F_WRLCK; // Exclusive write lock
-    lock.l_start = 0;
-    lock.l_whence = SEEK_SET;
-    lock.l_len = 0;
-
-    // Attempt to obtain the write lock without blocking
-    if (fcntl(fd, F_SETLK, &lock) == -1)
-    {
-        // Handle the case when the lock cannot be acquired immediately
-        log_errno_error("Error obtaining write lock: %s\n");
-        // perror("Error obtaining write lock");
-        return -1;
-    }
-
-    // Lock obtained successfully
-    return 0;
-}
-
-void unlock_file(FILE *file)
-{
-    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
-
-    struct flock unlock;
-    unlock.l_type = F_UNLCK; // Unlock
-    unlock.l_start = 0;
-    unlock.l_whence = SEEK_SET;
-    unlock.l_len = 0;
-
-    if (fcntl(fd, F_SETLK, &unlock) == -1)
-    {
-        log_errno_error("Error unlocking file: %s\n");
-        // perror("Error unlocking file");
-        exit(EXIT_FAILURE);
-    }
-}
 int write_file(int ssid, const char *filepath, char *data_buffer)
 {
     char path[MAX_PATH_LENGTH + 1];
@@ -186,7 +188,7 @@ int write_file(int ssid, const char *filepath, char *data_buffer)
         log_errno_error("Error while opening file: %s\n");
         return -1;
     }
-    if (try_lock_file(file) == -1)
+    if (try_lock_file(file, F_WRLCK) == -1)
     {
         // Handle the case when the lock cannot be obtained immediately
         fprintf(stderr, "Another process is currently writing to the file.\n");
@@ -236,8 +238,10 @@ int get_info_send_info(const char *path, int client_socket)
 
     return 0;
 }
-int is_directory(const char *path)
+int is_directory(int ssid, const char *filepath)
 {
+    char path[MAX_PATH_LENGTH + sizeof(int) + 1];
+    snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
     struct stat file_stat;
 
     if (stat(path, &file_stat) == 0)
@@ -264,7 +268,7 @@ void *client_handler(void *arguments)
     {
     case READ_REQUEST:
         log_info("READ_REQUEST", &client_ss_handler_arguments->client_address);
-        if (is_directory(request_buffer.request_content.read_request_data.path) == -1)
+        if (is_directory(client_ss_handler_arguments->ssid, request_buffer.request_content.read_request_data.path) == -1)
         {
             response = NOT_FOUND_RESPONSE;
             send_response(client_ss_handler_arguments->socket, response);
