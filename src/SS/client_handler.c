@@ -11,6 +11,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <fcntl.h>
 #include <arpa/inet.h>
 
 #include "client_handler.h"
@@ -26,17 +27,57 @@ typedef struct ClientHandlerArguments
     struct sockaddr_in client_address;
     socklen_t client_address_size;
 } ClientHandlerArguments;
-
-int read_file_and_send_data(int ssid, const char *filepath, int client_socket)
+int try_lock_file(FILE *file, short type)
 {
-    char path[MAX_PATH_LENGTH + sizeof(int) + 1];
-    snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
+    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
+
+    struct flock lock;
+    lock.l_type = type; // lock for both read and write depending on the type
+    lock.l_start = 0;
+    lock.l_whence = SEEK_SET;
+    lock.l_len = 0;
+
+    // Attempt to obtain the write lock without blocking
+    if (fcntl(fd, F_SETLK, &lock) == -1)
+    {
+        // Handle the case when the lock cannot be acquired immediately
+        log_errno_error("Error obtaining write lock: %s\n");
+        // perror("Error obtaining write lock");
+        return -1;
+    }
+
+    // Lock obtained successfully
+    return 0;
+}
+
+void unlock_file(FILE *file)
+{
+    int fd = fileno(file); // Get the file descriptor associated with the FILE pointer
+
+    struct flock unlock;
+    unlock.l_type = F_UNLCK; // Unlock
+    unlock.l_start = 0;
+    unlock.l_whence = SEEK_SET;
+    unlock.l_len = 0;
+
+    if (fcntl(fd, F_SETLK, &unlock) == -1)
+    {
+        log_errno_error("Error unlocking file: %s\n");
+        // perror("Error unlocking file");
+        exit(EXIT_FAILURE);
+    }
+}
+int read_file_and_send_data(int ssid, const char *path, int client_socket)
+{
+    // char path[MAX_PATH_LENGTH + sizeof(int) + 1];
+    // snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
     FILE *file = fopen(path, "r");
     if (file == NULL)
     {
         log_errno_error("Error while opening file: %s\n");
         return -1;
     }
+    try_lock_file(file, F_RDLCK);
     fseek(file, 0, SEEK_SET);
 
     char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE];
@@ -50,6 +91,7 @@ int read_file_and_send_data(int ssid, const char *filepath, int client_socket)
         }
     }
     end_streaming_response_payload(client_socket);
+    unlock_file(file);
     fclose(file);
     return 0;
 }
@@ -216,16 +258,25 @@ int copy_(const char *path, const char *destination, struct sockaddr_in *destina
 
     return 0;
 }
-int write_file(int ssid, const char *filepath, char *data_buffer)
+
+int write_file(int ssid, const char *path, char *data_buffer)
 {
-    char path[MAX_PATH_LENGTH + 1];
-    snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
+    // char path[MAX_PATH_LENGTH + 1];
+    // snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
 
     FILE *file = fopen(path, "a");
+
     if (file == NULL)
     {
         log_errno_error("Error while opening file: %s\n");
         return -1;
+    }
+    if (try_lock_file(file, F_WRLCK) == -1)
+    {
+        // Handle the case when the lock cannot be obtained immediately
+        fprintf(stderr, "Another process is currently writing to the file.\n");
+        fclose(file);
+        exit(EXIT_FAILURE);
     }
     // write the data buffer to the file by concatinating it on the end of the file
     // Append the data buffer to the end of the file
@@ -235,7 +286,7 @@ int write_file(int ssid, const char *filepath, char *data_buffer)
         fclose(file); // Close the file before returning in case of an error
         return -1;
     }
-
+    unlock_file(file);
     fclose(file);
     return 0;
 }
@@ -399,6 +450,7 @@ void *client_handler(void *arguments)
         {
             response = OK_RESPONSE;
         }
+        send_response(client_ss_handler_arguments->socket, response);
         // send the data to the client list of paths , paths_count
         if (send(client_ss_handler_arguments->socket, &paths_count, sizeof(paths_count), 0) == -1)
         {

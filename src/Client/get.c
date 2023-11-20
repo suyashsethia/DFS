@@ -14,7 +14,7 @@
 void get()
 {
     char path[MAX_PATH_LENGTH + 1];
-    printf("Enter Path :");
+    printf("Enter Path (to get file info) :");
     if (fgets(path, sizeof(path), stdin) == NULL) {
         return;
     }

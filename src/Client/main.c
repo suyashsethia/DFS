@@ -46,9 +46,9 @@ int main()
         // if (strcmp(command, "LIST\n") == 0) {
         //     list();
         // }
-        // if (strcmp(command, "GET\n") == 0) {
-        //     get();
-        // }
+        if (strcmp(command, "GET\n") == 0) {
+            get();
+        }
     }
 
     printf("Thank you, Client is closed, Happy diwali\n");
