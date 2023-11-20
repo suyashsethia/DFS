@@ -109,4 +109,6 @@ int receive_request(int socket, Request *request_buffer);
 
 int send_get_request(int socket, const char *path);
 
+int send_list_request(int socket, const char *path);
+
 #endif // REQUESTS_H

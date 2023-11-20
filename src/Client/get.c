@@ -115,9 +115,10 @@ void gett()
         log_response(response, &nm_address);
 
         printf("File Size: \t\t%ld bytes\n",file_stat.st_size);
-        printf("Number of Links: \t%ld\n",file_stat.st_nlink);
+        // printf("Number of Links: \t%ld\n",file_stat.st_nlink);
         printf("File inode: \t\t%ld\n",file_stat.st_ino);
-        printf( (S_ISDIR(file_stat.st_mode)) ? "d" : "-");
+        // printf( (S_ISDIR(file_stat.st_mode)) ? "d" : "-");
+        printf("%s",file_stat);
 
         close(ss_connection);
     }
