@@ -8,6 +8,9 @@
 #define MESSAGE_TYPE_STREAM '1'
 #define MESSAGE_TYPE_STREAM_END '2'
 
+#define MAX_CHUNK_SIZE 1024
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+
 typedef struct Message
 {
     char type;

@@ -87,7 +87,8 @@ int initialize(int argc, char *argv[])
     {
         recursive_path_finder(ss_id, "", list_of_paths, &paths_count);
     }
-    if (chdir(ss_id) == -1) {
+    if (chdir(ss_id) == -1)
+    {
         log_errno_error("Couldn't change directory: %s\n");
         return -1;
     }
@@ -136,7 +137,7 @@ int initialize(int argc, char *argv[])
 
     if (send_register_ss_request(nm_init_socket, atoi(ss_id), &ss_nm_server_address, &SS_client_address, paths_count, list_of_paths) == 0)
     {
-        log_info("Initialisin SS connection with NM\n", &nm_init_server_address);
+        log_info("Initialising SS connection with NM\n", &nm_init_server_address);
     }
     else
     {

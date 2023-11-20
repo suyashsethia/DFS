@@ -220,7 +220,7 @@ int copy_(const char *path, const char *destination, struct sockaddr_in *destina
             char follow_source_path[MAX_PATH_LENGTH];
             snprintf(follow_source_path, MAX_PATH_LENGTH, "%s/%s", path, entry->d_name);
             char follow_destination_path[MAX_PATH_LENGTH];
-            snprintf(follow_destination_path, MAX_PATH_LENGTH, "%s/%s", path, entry->d_name);
+            snprintf(follow_destination_path, MAX_PATH_LENGTH, "%s/%s", destination, entry->d_name);
 
             if (copy_(follow_source_path, follow_destination_path, destination_address, copied_paths_count, copied_paths, exclude_copy) == -1)
                 return -1;

@@ -69,12 +69,32 @@ int send_copied_paths(int socket, uint64_t copied_paths_count, char paths[MAX_AC
 {
     if (send(socket, &copied_paths_count, sizeof(copied_paths_count), 0) == -1)
         return -1;
-    return send(socket, paths, MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS, 0);
+    uint64_t total_bytes_sent = 0, bytes_sent;
+    while (1)
+    {
+        if ((bytes_sent = send(socket, paths + total_bytes_sent, MIN(MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS - total_bytes_sent, MAX_CHUNK_SIZE), 0)) == -1)
+            return -1;
+
+        total_bytes_sent += bytes_sent;
+        if (total_bytes_sent >= MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS)
+            break;
+    }
+
+    return 0;
 }
 
 int receive_copied_paths(int socket, uint64_t *copied_paths_count_buffer, char path_buffer[MAX_ACCESIBLE_PATHS][MAX_PATH_LENGTH])
 {
     if (recv(socket, copied_paths_count_buffer, sizeof(uint64_t), 0) == -1)
         return -1;
-    return recv(socket, path_buffer, MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS, 0);
+    uint64_t total_bytes_received = 0, bytes_received;
+    while (1)
+    {
+        if ((bytes_received = recv(socket, path_buffer + total_bytes_received, MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS - total_bytes_received, 0)) == -1)
+            return -1;
+        total_bytes_received += bytes_received;
+        if (total_bytes_received >= MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS)
+            break;
+    }
+    return 0;
 }
