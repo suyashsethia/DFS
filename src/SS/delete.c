@@ -74,8 +74,8 @@ int _delete_file_or_folder(const char *system_path)
 
 int delete_file_or_folder(int ssid, const char *path)
 {
-    char system_path[MAX_PATH_LENGTH];
-    snprintf(system_path, MAX_PATH_LENGTH, "%d/%s", ssid, path);
+    // char system_path[MAX_PATH_LENGTH];
+    // snprintf(system_path, MAX_PATH_LENGTH, "%d/%s", ssid, path);
 
-    return _delete_file_or_folder(system_path);
+    return _delete_file_or_folder(path);
 }

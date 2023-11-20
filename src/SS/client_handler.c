@@ -19,6 +19,8 @@
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
+// inclde newrok utils.h
+#include "../Common/network_utils.h"
 
 typedef struct ClientHandlerArguments
 {
@@ -290,10 +292,8 @@ int write_file(int ssid, const char *path, char *data_buffer)
     fclose(file);
     return 0;
 }
-int check_file_exists(int ssid, char *filepath)
+int check_file_exists(int ssid, char *path)
 {
-    char path[MAX_PATH_LENGTH + 1];
-    snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
     FILE *file = fopen(path, "r");
     if (file == NULL)
     {
@@ -310,14 +310,13 @@ int get_info_send_info(const char *path, int client_socket)
         log_errno_error("Error while getting file info: %s\n");
         return -1;
     }
-
-    // send the file_stat
-
     if (send(client_socket, &file_stat, sizeof(file_stat), 0) == -1)
     {
         log_errno_error("Error while sending file info: %s\n");
         return -1;
     }
+    // printf
+    // printf("File Size: \t\t%ld bytes\n", file_stat.st_size); 
 
     return 0;
 }
@@ -435,8 +434,8 @@ void *client_handler(void *arguments)
         {
             response = OK_RESPONSE;
         }
-
         send_response(client_ss_handler_arguments->socket, response);
+
         break;
     case GET_LIST:
         log_info("GET_LIST", &client_ss_handler_arguments->client_address);

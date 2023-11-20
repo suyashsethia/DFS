@@ -29,6 +29,12 @@ int send_read_request(int socket, const char *path)
     strncpy(request.request_content.read_request_data.path, path, sizeof(request.request_content.read_request_data.path));
     return send_request(socket, &request);
 }
+int send_get_request(int socket, const char *path)
+{
+    Request request = {.request_type = FILE_INFO};
+    strncpy(request.request_content.file_info_request_data.path, path, sizeof(request.request_content.file_info_request_data.path));
+    return send_request(socket, &request);
+}
 
 int send_write_request(int socket, const char *path)
 {

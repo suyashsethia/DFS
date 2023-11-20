@@ -6,7 +6,8 @@
     "stdint.h": "c",
     "loggers.h": "c",
     "responses.h": "c",
-    "read_request_handler.h": "c"
+    "read_request_handler.h": "c",
+    "ss_info.h": "c"
   },
   "makefile.makefilePath": "Makefile"
 }

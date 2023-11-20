@@ -7,7 +7,7 @@
 #include "write.h"
 // #include "copy.h"
 // #include "list.h"
-// #include "get.h"
+#include "get.h"
 
 int main()
 {
@@ -47,7 +47,7 @@ int main()
         //     list();
         // }
         if (strcmp(command, "GET\n") == 0) {
-            get();
+            gett();
         }
     }
 

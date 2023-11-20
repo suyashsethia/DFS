@@ -72,7 +72,7 @@ SS/create.o: SS/create.c SS/create.h Common/requests.h
 SS/delete.o: SS/delete.c SS/delete.h Common/requests.h
 	$(CC) $(CFLAGS) -c SS/delete.c -o $@
 
-client.out: Client/main.o Client/read.o Client/write.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o Client/delete.o
+client.out: Client/main.o Client/read.o Client/write.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o Client/delete.o Client/get.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 Client/main.o: Client/main.c  Client/create.h Client/write.h Client/delete.h Client/read.h
