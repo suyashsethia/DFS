@@ -66,10 +66,10 @@ void unlock_file(FILE *file)
         exit(EXIT_FAILURE);
     }
 }
-int read_file_and_send_data(int ssid, const char *filepath, int client_socket)
+int read_file_and_send_data(int ssid, const char *path, int client_socket)
 {
-    char path[MAX_PATH_LENGTH + sizeof(int) + 1];
-    snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
+    // char path[MAX_PATH_LENGTH + sizeof(int) + 1];
+    // snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
     FILE *file = fopen(path, "r");
     if (file == NULL)
     {
@@ -176,10 +176,10 @@ int copy_file(const char *path, const char *destination)
     return 0;
 }
 
-int write_file(int ssid, const char *filepath, char *data_buffer)
+int write_file(int ssid, const char *path, char *data_buffer)
 {
-    char path[MAX_PATH_LENGTH + 1];
-    snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
+    // char path[MAX_PATH_LENGTH + 1];
+    // snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
 
     FILE *file = fopen(path, "a");
 
@@ -238,10 +238,10 @@ int get_info_send_info(const char *path, int client_socket)
 
     return 0;
 }
-int is_directory(int ssid, const char *filepath)
+int is_directory(int ssid, const char *path)
 {
-    char path[MAX_PATH_LENGTH + sizeof(int) + 1];
-    snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
+    // char path[MAX_PATH_LENGTH + sizeof(int) + 1];
+    // snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
     struct stat file_stat;
 
     if (stat(path, &file_stat) == 0)
@@ -370,6 +370,7 @@ void *client_handler(void *arguments)
         {
             response = OK_RESPONSE;
         }
+        send_response(client_ss_handler_arguments->socket, response);
         // send the data to the client list of paths , paths_count
         if (send(client_ss_handler_arguments->socket, &paths_count, sizeof(paths_count), 0) == -1)
         {
