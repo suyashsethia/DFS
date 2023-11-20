@@ -221,36 +221,36 @@ void ReferencePage(Queue *queue, Hash *hash, unsigned pageNumber, const char *pa
     }
 }
 
-// Driver code
-int main()
-{
-    // Let cache can hold 4 pages
-    Queue *q = createQueue(4);
+// Driver code is given below for implementation of LRU
+// int main()
+// {
+//     // Let cache can hold 4 pages
+//     Queue *q = createQueue(4);
 
-    // Let 10 different pages can be requested (pages to be
-    // referenced are numbered from 0 to 9
-    Hash *hash = createHash(10);
+//     // Let 10 different pages can be requested (pages to be
+//     // referenced are numbered from 0 to 9
+//     Hash *hash = createHash(10);
 
-    // Let us refer pages 1, 2, 3, 1, 4, 5
-    time_t currentTime = time(NULL); // Get the current time
-    ReferencePage(q, hash, 1, "path1", 123, currentTime);
-    sleep(3);
-    ReferencePage(q, hash, 2, "path2", 456, currentTime);
-    sleep(1);
-    ReferencePage(q, hash, 3, "path3", 789, currentTime);
-    sleep(2);
-    ReferencePage(q, hash, 1, "path1", 123, currentTime); // Duplicate reference, won't change the order
-    ReferencePage(q, hash, 4, "path4", 111, currentTime);
-    ReferencePage(q, hash, 5, "path5", 222, currentTime);
+//     // Let us refer pages 1, 2, 3, 1, 4, 5
+//     time_t currentTime = time(NULL); // Get the current time
+//     ReferencePage(q, hash, 1, "path1", 123, currentTime);
+//     sleep(3);
+//     ReferencePage(q, hash, 2, "path2", 456, currentTime);
+//     sleep(1);
+//     ReferencePage(q, hash, 3, "path3", 789, currentTime);
+//     sleep(2);
+//     ReferencePage(q, hash, 1, "path1", 123, currentTime); // Duplicate reference, won't change the order
+//     ReferencePage(q, hash, 4, "path4", 111, currentTime);
+//     ReferencePage(q, hash, 5, "path5", 222, currentTime);
 
-    // Let us print cache frames after the above-referenced
-    // pages
-    QNode *current = q->front;
-    while (current != NULL)
-    {
-        printf("Page: %d, Path: %s, SSID: %d, Time: %ld\n", current->pageNumber, hash->path[current->pageNumber], hash->ssid[current->pageNumber], hash->time[current->pageNumber]);
-        current = current->next;
-    }
+//     // Let us print cache frames after the above-referenced
+//     // pages
+//     QNode *current = q->front;
+//     while (current != NULL)
+//     {
+//         printf("Page: %d, Path: %s, SSID: %d, Time: %ld\n", current->pageNumber, hash->path[current->pageNumber], hash->ssid[current->pageNumber], hash->time[current->pageNumber]);
+//         current = current->next;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
