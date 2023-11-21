@@ -113,7 +113,6 @@ int initialize(int argc, char *argv[])
     {
         log_errno_error("Error while connecting NM Init Socket: %s\n");
     }
-
     // connecting NM
     int server_port = SS_NM_HANDLER_BASE_PORT + atoi(ss_id);
 

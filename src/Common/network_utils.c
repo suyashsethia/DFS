@@ -38,9 +38,9 @@ int receive_message(int socket, Message *message_buffer)
 
     uint64_t total_bytes_recieved = 0;
     uint64_t bytes_recieved;
-    while (1)
+    while (message_buffer->payload_size > 0)
     {
-        if ((bytes_recieved = recv(socket, message_buffer->payload + total_bytes_recieved, message_buffer->payload_size - total_bytes_recieved, 0)) == -1)
+        if ((bytes_recieved = recv(socket, message_buffer->payload + total_bytes_recieved, MIN(message_buffer->payload_size - total_bytes_recieved, MAX_CHUNK_SIZE), 0)) == -1)
             return -1;
 
         total_bytes_recieved += bytes_recieved;

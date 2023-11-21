@@ -90,7 +90,7 @@ int receive_copied_paths(int socket, uint64_t *copied_paths_count_buffer, char p
     uint64_t total_bytes_received = 0, bytes_received;
     while (1)
     {
-        if ((bytes_received = recv(socket, path_buffer + total_bytes_received, MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS - total_bytes_received, 0)) == -1)
+        if ((bytes_received = recv(socket, path_buffer + total_bytes_received, MIN(MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS - total_bytes_received, MAX_CHUNK_SIZE), 0)) == -1)
             return -1;
         total_bytes_received += bytes_received;
         if (total_bytes_received >= MAX_PATH_LENGTH * MAX_ACCESIBLE_PATHS)
