@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-
 #include "delete.h"
 #include "../Common/requests.h"
 #include "../Common/loggers.h"
@@ -82,6 +81,7 @@ int delete_folder_contents(const char *system_path)
 
 int delete_file_or_folder(const char *system_path)
 {
+
     struct stat path_stat;
     if (stat(system_path, &path_stat) != 0)
     {
@@ -107,8 +107,8 @@ int delete_file_or_folder(const char *system_path)
         {
             return -1;
         }
-        
-        // check if file is present in writing_file in a for loop 
+
+        // check if file is present in writing_file in a for loop
         // if present then log error and return -1
         for (int i = 0; i < writing_file_count; i++)
         {
@@ -118,9 +118,67 @@ int delete_file_or_folder(const char *system_path)
                 return -1;
             }
         }
-        try_lock_filee(file , F_WRLCK);
+        try_lock_filee(file, F_WRLCK);
 
         if (remove(system_path) != 0)
+        {
+            return -1;
+        }
+        unlock_filee(file);
+        fclose(file);
+    }
+    else
+    {
+        return -1;
+    }
+
+    return 0;
+}
+int delete_file_or_folder_backup(char *system_path)
+{
+    char k[MAX_PATH_LENGTH];
+    strcpy(k, "../0/");
+    strcat(k, system_path);
+    printf("Creating backup file %s\n", k);
+    struct stat path_stat;
+    if (stat(k, &path_stat) != 0)
+    {
+        return -1;
+    }
+
+    if (S_ISDIR(path_stat.st_mode))
+    {
+        if (delete_folder_contents(k) != 0)
+        {
+            return -1;
+        }
+
+        if (rmdir(k) != 0)
+        {
+            return -1;
+        }
+    }
+    else if (S_ISREG(path_stat.st_mode))
+    {
+        FILE *file = fopen(k, "a");
+        if (file == NULL)
+        {
+            return -1;
+        }
+
+        // check if file is present in writing_file in a for loop
+        // if present then log error and return -1
+        for (int i = 0; i < writing_file_count; i++)
+        {
+            if (strcmp(writing_file[i], k) == 0)
+            {
+                log_error("File is being written to: %s\n");
+                return -1;
+            }
+        }
+        try_lock_filee(file, F_WRLCK);
+
+        if (remove(k) != 0)
         {
             return -1;
         }

@@ -6,7 +6,7 @@ all: nm.out ss.out client.out
 clean:
 	rm -r **/*.o **/*.out
 
-nm.out: NM/main.o NM/client_handler.o NM/ss_handler.o Common/requests.o Common/responses.o Common/network_utils.o Common/loggers.o NM/request_handlers/create_request_handler.o NM/ss_info.o NM/trie.o Common/path_utils.o NM/request_handlers/delete_request_handler.o NM/request_handlers/read_request_handler.o NM/request_handlers/copy_request_handler.o
+nm.out: NM/main.o NM/client_handler.o NM/ss_handler.o Common/requests.o Common/responses.o Common/network_utils.o Common/loggers.o NM/request_handlers/create_request_handler.o NM/ss_info.o NM/trie.o Common/path_utils.o NM/request_handlers/delete_request_handler.o NM/request_handlers/read_request_handler.o NM/request_handlers/copy_request_handler.o NM/hash.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 NM/main.o: NM/main.c NM/client_handler.h NM/ss_handler.h
@@ -30,11 +30,14 @@ NM/request_handlers/copy_request_handler.o: NM/request_handlers/copy_request_han
 NM/request_handlers/read_request_handler.o: NM/request_handlers/read_request_handler.c NM/request_handlers/read_request_handler.h Common/responses.h Common/loggers.h NM/ss_info.h
 	$(CC) $(CFLAGS) -c NM/request_handlers/read_request_handler.c -o $@
 
-NM/ss_info.o: NM/ss_info.c NM/ss_info.h NM/trie.h Common/network_config.h
+NM/ss_info.o: NM/ss_info.c NM/ss_info.h NM/trie.h Common/network_config.h NM/hash.h
 	$(CC) $(CFLAGS) -c NM/ss_info.c -o $@
 
 NM/trie.o: NM/trie.c NM/trie.h
 	$(CC) $(CFLAGS) -c NM/trie.c -o $@
+
+NM/hash.o: NM/hash.c NM/hash.h
+	$(CC) $(CFLAGS) -c NM/hash.c -o $@
 
 Common/requests.o: Common/requests.c Common/requests.h Common/network_utils.h
 	$(CC) $(CFLAGS) -c Common/requests.c -o $@

@@ -8,6 +8,7 @@ int create_folder(const char *path)
 }
 int create_file(const char *path)
 {
+    // printf("Creating file %s\n", path);
     FILE *file = fopen(path, "w");
     if (file == NULL)
     {
@@ -15,4 +16,29 @@ int create_file(const char *path)
     }
     fclose(file);
     return 0;
+}
+
+int create_backup_file(const char *path)
+{
+
+    char k[MAX_PATH_LENGTH];
+    strcpy(k, "../0/");
+    strcat(k, path);
+    // printf("Creating backup file %s\n", k);
+    FILE *file = fopen(k, "w");
+    if (file == NULL)
+    {
+        return -1;
+    }
+    fclose(file);
+    return 0;
+}
+int create_backup_folder(const char *path)
+{
+
+    char k[MAX_PATH_LENGTH];
+    strcpy(k, "../0/");
+    strcat(k, path);
+    // printf("Creating backup folder %s\n", k);
+    return mkdir(k, 0777);
 }

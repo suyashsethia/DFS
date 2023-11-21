@@ -67,36 +67,36 @@ void printHashtable(Hashtable *ht)
     printf("\n");
 }
 
-int main()
-{
-    // Create a hashtable
-    Hashtable ht;
-    // Initialize the hashtable
-    initializeHashtable(&ht);
-    // Example usage
-    addPath(&ht, "/example/path1", 123);
+// int main()
+// {
+//     // Create a hashtable
+//     Hashtable ht;
+//     // Initialize the hashtable
+//     initializeHashtable(&ht);
+//     // Example usage
+//     addPath(&ht, "/example/path1", 123);
 
-    // sleep(2);
-    addPath(&ht, "/example/path2", 456);
-    // addPath(&ht, "/example/path1", 127);
-    // addPath(&ht, "/example/path2", 457);
-    // addPath(&ht, "/example/path1", 173);
-    // addPath(&ht, "/example/path2", 476);
-    // addPath(&ht, "/example/path1", 723);
-    // addPath(&ht, "/example/path2", 756);
-    // addPath(&ht, "/example/path1", 223);
-    // addPath(&ht, "/example/path2", 466);
-    // addPath(&ht, "/example/path1", 103);
-    // addPath(&ht, "/example/path2", 406);
-    printHashtable(&ht);
-    // printf("SSID for /example/path1: %d\n", getSSID(&ht, "/example/path1"));
-    // printf("SSID for /example/path2: %d\n", getSSID(&ht, "/example/path2"));
+//     // sleep(2);
+//     addPath(&ht, "/example/path2", 456);
+//     // addPath(&ht, "/example/path1", 127);
+//     // addPath(&ht, "/example/path2", 457);
+//     // addPath(&ht, "/example/path1", 173);
+//     // addPath(&ht, "/example/path2", 476);
+//     // addPath(&ht, "/example/path1", 723);
+//     // addPath(&ht, "/example/path2", 756);
+//     // addPath(&ht, "/example/path1", 223);
+//     // addPath(&ht, "/example/path2", 466);
+//     // addPath(&ht, "/example/path1", 103);
+//     // addPath(&ht, "/example/path2", 406);
+//     printHashtable(&ht);
+//     // printf("SSID for /example/path1: %d\n", getSSID(&ht, "/example/path1"));
+//     // printf("SSID for /example/path2: %d\n", getSSID(&ht, "/example/path2"));
 
-    // Delete path "/example/path1"
-    // deletePath(&ht, "/example/path1");
+//     // Delete path "/example/path1"
+//     // deletePath(&ht, "/example/path1");
 
-    // Try to get the SSID for the deleted path
-    // printf("SSID for /example/path1 after deletion: %d\n", getSSID(&ht, "/example/path1"));
+//     // Try to get the SSID for the deleted path
+//     // printf("SSID for /example/path1 after deletion: %d\n", getSSID(&ht, "/example/path1"));
 
-    return 0;
-}
+//     return 0;
+// }

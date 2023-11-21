@@ -25,7 +25,7 @@
 #include "delete.h"
 
 char writing_file[MAX_PATH_LENGTH][MAX_ACCESIBLE_PATHS];
-int writing_file_count =0 ;
+int writing_file_count = 0;
 typedef struct ClientHandlerArguments
 {
     int ssid;
@@ -273,13 +273,10 @@ int copy_(const char *path, const char *destination, struct sockaddr_in *destina
     return 0;
 }
 
-int write_file(FILE *file , char *data_buffer)
+int write_file(FILE *file, char *data_buffer)
 {
     // char path[MAX_PATH_LENGTH + 1];
     // snprintf(path, MAX_PATH_LENGTH, "%d/%s", ssid, filepath);
-
-    
-
 
     // write the data buffer to the file by concatinating it on the end of the file
     // Append the data buffer to the end of the file
@@ -347,7 +344,7 @@ void *client_handler(void *arguments)
         }
         else
         {
-            if (create_file(request_buffer.request_content.create_request_data.path) == -1)
+            if (create_file(request_buffer.request_content.create_request_data.path) == -1 )
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
@@ -416,20 +413,20 @@ void *client_handler(void *arguments)
         }
         send_response(client_ss_handler_arguments->socket, response);
         log_response(response, &client_ss_handler_arguments->client_address);
-        
+
         FILE *file = fopen(request_buffer.request_content.write_request_data.path, "a");
-        if(file == NULL)
+        if (file == NULL)
         {
             log_errno_error("Error while opening file: %s\n");
             return NULL;
             break;
         }
-        // add the file to writing_file array 
-        strcpy(writing_file[writing_file_count++],request_buffer.request_content.write_request_data.path);
+        // add the file to writing_file array
+        strcpy(writing_file[writing_file_count++], request_buffer.request_content.write_request_data.path);
         try_lock_file(file, F_WRLCK);
 
         while (1)
-        
+
         {
             char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE + 1] = {0};
             int k = receive_streaming_response_payload(client_ss_handler_arguments->socket, buffer);
@@ -457,14 +454,14 @@ void *client_handler(void *arguments)
             }
         }
         unlock_file(file);
-        //remove the file from writing_file array
-        for(int i = 0 ; i < writing_file_count ; i++)
+        // remove the file from writing_file array
+        for (int i = 0; i < writing_file_count; i++)
         {
-            if(strcmp(writing_file[i],request_buffer.request_content.write_request_data.path) == 0)
+            if (strcmp(writing_file[i], request_buffer.request_content.write_request_data.path) == 0)
             {
-                for(int j = i ; j < writing_file_count - 1 ; j++)
+                for (int j = i; j < writing_file_count - 1; j++)
                 {
-                    strcpy(writing_file[j],writing_file[j+1]);
+                    strcpy(writing_file[j], writing_file[j + 1]);
                 }
                 writing_file_count--;
                 break;
