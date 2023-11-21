@@ -36,7 +36,7 @@ NM/ss_info.o: NM/ss_info.c NM/ss_info.h NM/trie.h Common/network_config.h NM/has
 NM/trie.o: NM/trie.c NM/trie.h
 	$(CC) $(CFLAGS) -c NM/trie.c -o $@
 
-NM/hash.o: NM/hash.c NM/hash.h
+NM/hash.o: NM/hash.c NM/hash.h Common/requests.h
 	$(CC) $(CFLAGS) -c NM/hash.c -o $@
 
 Common/requests.o: Common/requests.c Common/requests.h Common/network_utils.h
@@ -54,7 +54,7 @@ Common/loggers.o: Common/loggers.c Common/loggers.h Common/colors.h Common/respo
 Common/path_utils.o: Common/path_utils.c Common/path_utils.h
 	$(CC) $(CFLAGS) -c Common/path_utils.c -o $@
 
-ss.out: SS/main.o SS/initialize.o Common/requests.o Common/responses.o Common/network_utils.o  SS/client_handler.o SS/nm_handler.o Common/loggers.o SS/create.o SS/delete.o
+ss.out: SS/main.o SS/initialize.o Common/requests.o Common/responses.o Common/network_utils.o  SS/client_handler.o SS/nm_handler.o Common/loggers.o SS/create.o SS/delete.o SS/file_lock_master_lock.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 SS/main.o: SS/main.c SS/initialize.h SS/nm_handler.h SS/client_handler.h  
@@ -63,7 +63,7 @@ SS/main.o: SS/main.c SS/initialize.h SS/nm_handler.h SS/client_handler.h
 SS/nm_handler.o: SS/nm_handler.c SS/nm_handler.h Common/network_config.h Common/loggers.h Common/requests.h Common/responses.h SS/create.h SS/delete.h
 	$(CC) $(CFLAGS) -c SS/nm_handler.c -o $@
 
-SS/client_handler.o: SS/client_handler.c SS/client_handler.h Common/loggers.h Common/network_config.h Common/requests.h Common/responses.h SS/create.h SS/delete.h
+SS/client_handler.o: SS/client_handler.c SS/client_handler.h Common/loggers.h Common/network_config.h Common/requests.h Common/responses.h SS/create.h SS/delete.h SS/file_lock_master_lock.h
 	$(CC) $(CFLAGS) -c SS/client_handler.c -o $@
 
 SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/requests.h Common/responses.h Common/loggers.h
@@ -72,8 +72,11 @@ SS/initialize.o: SS/initialize.c SS/initialize.h Common/network_config.h Common/
 SS/create.o: SS/create.c SS/create.h Common/requests.h
 	$(CC) $(CFLAGS) -c SS/create.c -o $@
 
-SS/delete.o: SS/delete.c SS/delete.h Common/requests.h
+SS/delete.o: SS/delete.c SS/delete.h Common/requests.h SS/file_lock_master_lock.h
 	$(CC) $(CFLAGS) -c SS/delete.c -o $@
+
+SS/file_lock_master_lock.o: SS/file_lock_master_lock.c SS/file_lock_master_lock.h
+	$(CC) $(CFLAGS) -c SS/file_lock_master_lock.c -o $@
 
 client.out: Client/main.o Client/read.o Client/write.o Client/create.o Common/responses.o Common/requests.o Common/network_utils.o Common/loggers.o Client/delete.o Client/get.o Client/copy.o Client/list.o	
 	$(CC) $(CFLAGS) $^ -o $@

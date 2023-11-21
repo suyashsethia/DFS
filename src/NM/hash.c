@@ -11,47 +11,110 @@ unsigned int hash(char *path)
     {
         hashval = *path + (hashval << 5) - hashval;
     }
-    return hashval % HASHTABLE_SIZE;
+    return hashval % HASH_SIZE;
 }
 
-void initializeHashtable(Hashtable *ht)
+Hashtable *initializeHashtable(Hashtable *ht)
 {
-    for (int i = 0; i < HASHTABLE_SIZE; i++)
+    if (ht == NULL)
     {
-        ht->entries[i].entry_time = 0;
+        ht = malloc(sizeof(Hashtable));
+
+        for (int i = 0; i < HASHTABLE_SIZE; i++)
+        {
+            ht->entries[i].entry_time = 0;
+            ht->entries[i].hash = -1;
+        }
     }
+    return ht;
 }
 
 void addPath(Hashtable *ht, char *path, int ssid)
 {
-    unsigned int index = hash(path);
+    if (ht == NULL)
+        return;
+    unsigned int path_hash = hash(path);
+
+    for (int i = 0; i < HASHTABLE_SIZE; i++)
+    {
+        if (ht->entries[i].hash == path_hash && strcmp(ht->entries[i].path, path) == 0)
+        {
+            ht->entries[i].entry_time = time(NULL);
+            return;
+        }
+    }
+
+    int insert_at;
+    time_t oldest_time = time(NULL);
+    for (int i = 0; i < HASHTABLE_SIZE; i++)
+    {
+        if (ht->entries[i].hash == -1)
+        {
+            insert_at = i;
+            break;
+        }
+
+        if (ht->entries[i].entry_time < oldest_time)
+            insert_at = i;
+    }
 
     CacheEntry newEntry;
     strcpy(newEntry.path, path);
     newEntry.ssid = ssid;
     newEntry.entry_time = time(NULL);
+    newEntry.hash = path_hash;
 
-    ht->entries[index] = newEntry;
+    ht->entries[insert_at] = newEntry;
 }
 
 void deletePath(Hashtable *ht, char *path)
 {
-    unsigned int index = hash(path);
-    ht->entries[index].entry_time = 0;
+
+    if (ht == NULL)
+        return;
+
+    unsigned int path_hash = hash(path);
+    for (int i = 0; i < HASHTABLE_SIZE; i++)
+    {
+        if (ht->entries[i].hash == path_hash && strcmp(ht->entries[i].path, path) == 0)
+        {
+            ht->entries[i].entry_time = 0;
+            ht->entries[i].hash = -1;
+        }
+    }
+
+    size_t path_len = strlen(path);
+    char compare_path[path_len + 1 + 1];
+    strcpy(compare_path, path);
+    compare_path[path_len] = '/';
+    compare_path[path_len + 1] = '\0';
+
+    // delete child paths
+    for (int i = 0; i < HASHTABLE_SIZE; i++)
+    {
+        if (strncmp(ht->entries[i].path, compare_path, path_len + 1) == 0)
+        {
+            ht->entries[i].entry_time = 0;
+            ht->entries[i].hash = -1;
+        }
+    }
 }
 
 int getSSID(Hashtable *ht, char *path)
 {
-    unsigned int index = hash(path);
-
-    if (strcmp(ht->entries[index].path, path) == 0 && ht->entries[index].entry_time != 0)
-    {
-        return ht->entries[index].ssid;
-    }
-    else
-    {
+    if (ht == NULL)
         return -1;
+    unsigned int path_hash = hash(path);
+
+    for (int i = 0; i < HASHTABLE_SIZE; i++)
+    {
+        if (ht->entries[i].hash == path_hash && strcmp(ht->entries[i].path, path) == 0)
+        {
+            return ht->entries[i].ssid;
+        }
     }
+
+    return -1;
 }
 
 void printHashtable(Hashtable *ht)

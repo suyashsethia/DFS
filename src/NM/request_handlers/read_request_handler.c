@@ -10,6 +10,7 @@ void read_request_handler(int socket, struct sockaddr_in *address, char *path)
     {
         send_response(socket, NOT_FOUND_RESPONSE);
         log_response(NOT_FOUND_RESPONSE, address);
+        return;
     }
 
     struct sockaddr_in redirect_address = get_client_connection_address(ss_id);

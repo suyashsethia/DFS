@@ -9,6 +9,7 @@
 #include "delete.h"
 #include "../Common/requests.h"
 #include "../Common/loggers.h"
+#include "file_lock_master_lock.h"
 // #include "client_handler.c"
 
 int try_lock_filee(FILE *file, short type)
@@ -22,7 +23,7 @@ int try_lock_filee(FILE *file, short type)
     lock.l_len = 0;
 
     // Attempt to obtain the write lock without blocking
-    if (fcntl(fd, F_SETLK, &lock) == -1)
+    if (fcntl(fd, F_SETLKW, &lock) == -1)
     {
         // Handle the case when the lock cannot be acquired immediately
         log_errno_error("Error obtaining write lock: %s\n");
@@ -44,7 +45,7 @@ void unlock_filee(FILE *file)
     unlock.l_whence = SEEK_SET;
     unlock.l_len = 0;
 
-    if (fcntl(fd, F_SETLK, &unlock) == -1)
+    if (fcntl(fd, F_SETLKW, &unlock) == -1)
     {
         log_errno_error("Error unlocking file: %s\n");
         // perror("Error unlocking file");
@@ -102,30 +103,22 @@ int delete_file_or_folder(const char *system_path)
     }
     else if (S_ISREG(path_stat.st_mode))
     {
-        FILE *file = fopen(system_path, "a");
+        // dont let anyone else acquire master when deleting
+        acquire_file_master_lock();
+        FILE *file = fopen(system_path, "w");
         if (file == NULL)
         {
-            return -1;
+            release_file_master_lock();
+            return 0;
         }
 
-        // check if file is present in writing_file in a for loop
-        // if present then log error and return -1
-        for (int i = 0; i < writing_file_count; i++)
-        {
-            if (strcmp(writing_file[i], system_path) == 0)
-            {
-                log_error("File is being written to: %s\n");
-                return -1;
-            }
-        }
         try_lock_filee(file, F_WRLCK);
 
-        if (remove(system_path) != 0)
-        {
-            return -1;
-        }
+        remove(system_path);
+
         unlock_filee(file);
         fclose(file);
+        release_file_master_lock();
     }
     else
     {
@@ -137,9 +130,8 @@ int delete_file_or_folder(const char *system_path)
 int delete_file_or_folder_backup(char *system_path)
 {
     char k[MAX_PATH_LENGTH];
-    strcpy(k, "../0/");
+    strcpy(k, "../backup/");
     strcat(k, system_path);
-    printf("Creating backup file %s\n", k);
     struct stat path_stat;
     if (stat(k, &path_stat) != 0)
     {
@@ -160,22 +152,13 @@ int delete_file_or_folder_backup(char *system_path)
     }
     else if (S_ISREG(path_stat.st_mode))
     {
-        FILE *file = fopen(k, "a");
+        acquire_file_master_lock();
+        FILE *file = fopen(k, "w");
         if (file == NULL)
         {
             return -1;
         }
 
-        // check if file is present in writing_file in a for loop
-        // if present then log error and return -1
-        for (int i = 0; i < writing_file_count; i++)
-        {
-            if (strcmp(writing_file[i], k) == 0)
-            {
-                log_error("File is being written to: %s\n");
-                return -1;
-            }
-        }
         try_lock_filee(file, F_WRLCK);
 
         if (remove(k) != 0)
@@ -184,6 +167,7 @@ int delete_file_or_folder_backup(char *system_path)
         }
         unlock_filee(file);
         fclose(file);
+        release_file_master_lock();
     }
     else
     {

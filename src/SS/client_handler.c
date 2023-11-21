@@ -19,13 +19,11 @@
 #include "../Common/network_config.h"
 #include "../Common/requests.h"
 #include "../Common/responses.h"
-// inclde newrok utils.h
 #include "../Common/network_utils.h"
+#include "file_lock_master_lock.h"
 #include "create.h"
 #include "delete.h"
 
-char writing_file[MAX_PATH_LENGTH][MAX_ACCESIBLE_PATHS];
-int writing_file_count = 0;
 typedef struct ClientHandlerArguments
 {
     int ssid;
@@ -44,7 +42,8 @@ int try_lock_file(FILE *file, short type)
     lock.l_len = 0;
 
     // Attempt to obtain the write lock without blocking
-    if (fcntl(fd, F_SETLK, &lock) == -1)
+    int res = fcntl(fd, F_SETLKW, &lock);
+    if (res == -1)
     {
         // Handle the case when the lock cannot be acquired immediately
         log_errno_error("Error obtaining write lock: %s\n");
@@ -66,7 +65,7 @@ void unlock_file(FILE *file)
     unlock.l_whence = SEEK_SET;
     unlock.l_len = 0;
 
-    if (fcntl(fd, F_SETLK, &unlock) == -1)
+    if (fcntl(fd, F_SETLKW, &unlock) == -1)
     {
         log_errno_error("Error unlocking file: %s\n");
         // perror("Error unlocking file");
@@ -77,6 +76,8 @@ int read_file_and_send_data(const char *path, int client_socket)
 {
     // char path[MAX_PATH_LENGTH + sizeof(int) + 1];
     // snprintf(path, MAX_PATH_LENGTH + sizeof(int), "%d/%s", ssid, filepath);
+
+    acquire_file_master_lock();
     FILE *file = fopen(path, "r");
     if (file == NULL)
     {
@@ -84,6 +85,7 @@ int read_file_and_send_data(const char *path, int client_socket)
         return -1;
     }
     try_lock_file(file, F_RDLCK);
+    release_file_master_lock();
     fseek(file, 0, SEEK_SET);
 
     char buffer[MAX_STREAMING_RESPONSE_PAYLOAD_SIZE];
@@ -344,7 +346,7 @@ void *client_handler(void *arguments)
         }
         else
         {
-            if (create_file(request_buffer.request_content.create_request_data.path) == -1 )
+            if (create_file(request_buffer.request_content.create_request_data.path) == -1)
             {
                 response = INTERNAL_ERROR_RESPONSE;
             }
@@ -411,20 +413,18 @@ void *client_handler(void *arguments)
         {
             response = OK_START_STREAM_RESPONSE;
         }
-        send_response(client_ss_handler_arguments->socket, response);
-        log_response(response, &client_ss_handler_arguments->client_address);
 
-        FILE *file = fopen(request_buffer.request_content.write_request_data.path, "a");
+        acquire_file_master_lock();
+        FILE *file = fopen(request_buffer.request_content.write_request_data.path, "w");
         if (file == NULL)
         {
             log_errno_error("Error while opening file: %s\n");
             return NULL;
-            break;
         }
-        // add the file to writing_file array
-        strcpy(writing_file[writing_file_count++], request_buffer.request_content.write_request_data.path);
         try_lock_file(file, F_WRLCK);
-
+        release_file_master_lock();
+        send_response(client_ss_handler_arguments->socket, response);
+        log_response(response, &client_ss_handler_arguments->client_address);
         while (1)
 
         {
@@ -454,19 +454,6 @@ void *client_handler(void *arguments)
             }
         }
         unlock_file(file);
-        // remove the file from writing_file array
-        for (int i = 0; i < writing_file_count; i++)
-        {
-            if (strcmp(writing_file[i], request_buffer.request_content.write_request_data.path) == 0)
-            {
-                for (int j = i; j < writing_file_count - 1; j++)
-                {
-                    strcpy(writing_file[j], writing_file[j + 1]);
-                }
-                writing_file_count--;
-                break;
-            }
-        }
         fclose(file);
         send_response(client_ss_handler_arguments->socket, response);
         break;

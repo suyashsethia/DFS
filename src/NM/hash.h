@@ -2,12 +2,15 @@
 #define HASH_H
 
 #include <time.h>
+#include "../Common/requests.h"
 
-#define HASHTABLE_SIZE 10
+#define HASHTABLE_SIZE 2
+#define HASH_SIZE 1000
 
 typedef struct
 {
-    char path[256];
+    int hash;
+    char path[MAX_PATH_LENGTH];
     time_t entry_time;
     int ssid;
 } CacheEntry;
@@ -18,7 +21,7 @@ typedef struct
 } Hashtable;
 
 unsigned int hash(char *path);
-void initializeHashtable(Hashtable *ht);
+Hashtable *initializeHashtable(Hashtable *ht);
 void addPath(Hashtable *ht, char *path, int ssid);
 void deletePath(Hashtable *ht, char *path);
 int getSSID(Hashtable *ht, char *path);

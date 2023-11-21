@@ -19,7 +19,8 @@ struct sockaddr_in client_connection_addresses[MAX_SS_COUNT];
 pthread_rwlock_t path_ss_info_lock = PTHREAD_RWLOCK_INITIALIZER;
 TrieNode path_ss_info = {.data = TRIE_SENTINEL_DATA, .character = '\0', .children = {NULL}};
 
-Hashtable ht;
+pthread_rwlock_t ht_lock = PTHREAD_RWLOCK_INITIALIZER;
+Hashtable *ht = NULL;
 
 void register_ss(int ss_id, struct sockaddr_in nm_connection_address, struct sockaddr_in client_connection_address,
                  uint64_t accessible_paths_count, char **accessible_paths)
@@ -35,8 +36,11 @@ void register_ss(int ss_id, struct sockaddr_in nm_connection_address, struct soc
     pthread_rwlock_wrlock(&path_ss_info_lock);
     for (uint64_t i = 0; i < accessible_paths_count; i++)
         insert_trie(&path_ss_info, accessible_paths[i], ss_id);
-    initializeHashtable(&ht);
     pthread_rwlock_unlock(&path_ss_info_lock);
+
+    pthread_rwlock_wrlock(&ht_lock);
+    ht = initializeHashtable(ht);
+    pthread_rwlock_unlock(&ht_lock);
 
     pthread_rwlock_wrlock(&is_registered_lock);
     is_registered[ss_id] = true;
@@ -54,26 +58,46 @@ void add_path(int ss_id, char *path)
 {
     pthread_rwlock_wrlock(&path_ss_info_lock);
     insert_trie(&path_ss_info, path, ss_id);
-    addPath(&ht, path, ss_id);
     pthread_rwlock_unlock(&path_ss_info_lock);
+
+    pthread_rwlock_wrlock(&ht_lock);
+    addPath(ht, path, ss_id);
+    pthread_rwlock_unlock(&ht_lock);
 }
 
 void remove_path(char *path)
 {
+    pthread_rwlock_wrlock(&ht_lock);
+    deletePath(ht, path);
+    pthread_rwlock_unlock(&ht_lock);
+
     pthread_rwlock_wrlock(&path_ss_info_lock);
     delete_trie(&path_ss_info, path);
-    deletePath(&ht, path);
     pthread_rwlock_unlock(&path_ss_info_lock);
 }
 
 int get_ss_id_of_path(char *path)
 {
-    pthread_rwlock_rdlock(&path_ss_info_lock);
     int ss_id = -1;
-    ss_id = getSSID(&ht, path);
+    pthread_rwlock_rdlock(&ht_lock);
+    ss_id = getSSID(ht, path);
+    pthread_rwlock_unlock(&ht_lock);
+
     if (ss_id == -1)
+    {
+        pthread_rwlock_rdlock(&path_ss_info_lock);
         ss_id = search_trie(&path_ss_info, path);
-    pthread_rwlock_unlock(&path_ss_info_lock);
+        pthread_rwlock_unlock(&path_ss_info_lock);
+    }
+
+    if (ss_id != -1)
+    {
+
+        pthread_rwlock_wrlock(&ht_lock);
+        addPath(ht, path, ss_id);
+        pthread_rwlock_unlock(&ht_lock);
+    }
+
     return ss_id;
 }
 
