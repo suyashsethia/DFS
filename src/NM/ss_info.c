@@ -5,6 +5,7 @@
 #include "../Common/network_config.h"
 #include "ss_info.h"
 #include "trie.h"
+#include "hash.h"
 
 pthread_rwlock_t is_registered_lock = PTHREAD_RWLOCK_INITIALIZER;
 bool is_registered[MAX_SS_COUNT] = {false};
