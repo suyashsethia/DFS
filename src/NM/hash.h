@@ -3,39 +3,25 @@
 
 #include <time.h>
 
-typedef struct QNode
+#define HASHTABLE_SIZE 10
+
+typedef struct
 {
-    struct QNode *prev, *next;
-    unsigned pageNumber;
-} QNode;
+    char path[256];
+    time_t entry_time;
+    int ssid;
+} CacheEntry;
 
-typedef struct Queue
+typedef struct
 {
-    unsigned count;
-    unsigned numberOfFrames;
-    QNode *front, *rear;
-} Queue;
+    CacheEntry entries[HASHTABLE_SIZE];
+} Hashtable;
 
-typedef struct Hash
-{
-    int capacity;
-    QNode **array;
-    char **path;
-    int *ssid;
-    time_t *time;
-} Hash;
-
-QNode *newQNode(unsigned pageNumber);
-Queue *createQueue(int numberOfFrames);
-Hash *createHash(int capacity);
-int AreAllFramesFull(Queue *queue);
-int isQueueEmpty(Queue *queue);
-void deQueue(Queue *queue);
-void Enqueue(Queue *queue, Hash *hash, unsigned pageNumber, const char *path, int ssid, time_t currentTime);
-void ReferencePage(Queue *queue, Hash *hash, unsigned pageNumber, const char *path, int ssid, time_t referenceTime);
-void deletePath(Queue *queue, Hash *hash, const char *path, int totalPages);
-
-// Function to print the contents of the cache
-// void printCache(Queue *queue, Hash *hash);
+unsigned int hash(char *path);
+void initializeHashtable(Hashtable *ht);
+void addPath(Hashtable *ht, char *path, int ssid);
+void deletePath(Hashtable *ht, char *path);
+int getSSID(Hashtable *ht, char *path);
+void printHashtable(Hashtable *ht);
 
 #endif // HASH_H
