@@ -4,7 +4,7 @@
 
     - Ayan Datta
     - Suyash Sethia
-    - Aditya Raghuvanshi
+    - Krishna Singh
 
 ## Functionality
 
